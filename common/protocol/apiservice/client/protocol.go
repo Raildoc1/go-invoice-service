@@ -27,7 +27,7 @@ type Invoice struct {
 
 type Item struct {
 	Description string          `json:"description"`
-	Quantity    int             `json:"quantity"`
+	Quantity    int32           `json:"quantity"`
 	UnitPrice   decimal.Decimal `json:"unit_price"`
 	Total       decimal.Decimal `json:"total"`
 }

@@ -5,6 +5,11 @@ import (
 	"go-invoice-service/api-service/internal/dto"
 )
 
+type StorageService interface {
+	AddNew(ctx context.Context, invoice dto.Invoice) error
+	SetProcessingState(ctx context.Context) error
+}
+
 type Invoice struct{}
 
 func NewInvoice() *Invoice {

@@ -1,14 +1,13 @@
 package dto
 
 import (
-	"github.com/shopspring/decimal"
 	"time"
 )
 
 type Invoice struct {
 	ID         string
 	CustomerID string
-	Amount     decimal.Decimal
+	Amount     int64
 	Currency   string
 	DueDate    time.Time
 	CreatedAt  time.Time
@@ -19,7 +18,7 @@ type Invoice struct {
 
 type Item struct {
 	Description string
-	Quantity    int
-	UnitPrice   decimal.Decimal
-	Total       decimal.Decimal
+	Quantity    int16
+	UnitPrice   int64
+	Total       int64
 }
