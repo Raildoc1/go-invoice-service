@@ -3,17 +3,16 @@
 //   sqlc v1.29.0
 // source: invoice_queries.sql
 
-package generated
+package queries
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
 )
 
-const addInvoice = `-- name: AddInvoice :execresult
+const addInvoice = `-- name: AddInvoice :exec
 insert into invoices (id, customer_id, amount, currency, due_data, created_at, updated_at, notes, status)
 values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 `
@@ -26,12 +25,12 @@ type AddInvoiceParams struct {
 	DueData    time.Time
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
-	Notes      sql.NullString
-	Status     sql.NullString
+	Notes      string
+	Status     string
 }
 
-func (q *Queries) AddInvoice(ctx context.Context, arg AddInvoiceParams) (sql.Result, error) {
-	return q.db.ExecContext(ctx, addInvoice,
+func (q *Queries) AddInvoice(ctx context.Context, arg AddInvoiceParams) error {
+	_, err := q.db.ExecContext(ctx, addInvoice,
 		arg.ID,
 		arg.CustomerID,
 		arg.Amount,
@@ -42,4 +41,5 @@ func (q *Queries) AddInvoice(ctx context.Context, arg AddInvoiceParams) (sql.Res
 		arg.Notes,
 		arg.Status,
 	)
+	return err
 }

@@ -2,10 +2,9 @@
 // versions:
 //   sqlc v1.29.0
 
-package generated
+package queries
 
 import (
-	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,21 +18,21 @@ type Invoice struct {
 	DueData    time.Time
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
-	Notes      sql.NullString
-	Status     sql.NullString
+	Notes      string
+	Status     string
 }
 
 type InvoiceItem struct {
 	ID          uuid.UUID
-	InvoiceID   uuid.NullUUID
-	Description sql.NullString
-	Quantity    sql.NullInt32
-	UnitPrice   sql.NullInt64
-	Total       sql.NullInt64
+	InvoiceID   uuid.UUID
+	Description string
+	Quantity    int32
+	UnitPrice   int64
+	Total       int64
 }
 
 type NewInvoiceOutbox struct {
 	ID        int32
-	InvoiceID uuid.NullUUID
-	RetryTime sql.NullTime
+	InvoiceID uuid.UUID
+	RetryTime time.Time
 }
