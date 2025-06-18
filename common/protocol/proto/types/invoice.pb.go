@@ -92,8 +92,8 @@ func (x *Item) GetTotal() int64 {
 
 type Invoice struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            *string                `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
-	CustomerId    *string                `protobuf:"bytes,2,opt,name=customerId" json:"customerId,omitempty"`
+	Id            *UUID                  `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
+	CustomerId    *UUID                  `protobuf:"bytes,2,opt,name=customerId" json:"customerId,omitempty"`
 	Amount        *int64                 `protobuf:"varint,3,opt,name=amount" json:"amount,omitempty"`
 	Currency      *string                `protobuf:"bytes,4,opt,name=currency" json:"currency,omitempty"`
 	DueDate       *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=dueDate" json:"dueDate,omitempty"`
@@ -135,18 +135,18 @@ func (*Invoice) Descriptor() ([]byte, []int) {
 	return file_types_invoice_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *Invoice) GetId() string {
-	if x != nil && x.Id != nil {
-		return *x.Id
+func (x *Invoice) GetId() *UUID {
+	if x != nil {
+		return x.Id
 	}
-	return ""
+	return nil
 }
 
-func (x *Invoice) GetCustomerId() string {
-	if x != nil && x.CustomerId != nil {
-		return *x.CustomerId
+func (x *Invoice) GetCustomerId() *UUID {
+	if x != nil {
+		return x.CustomerId
 	}
-	return ""
+	return nil
 }
 
 func (x *Invoice) GetAmount() int64 {
@@ -202,16 +202,16 @@ var File_types_invoice_proto protoreflect.FileDescriptor
 
 const file_types_invoice_proto_rawDesc = "" +
 	"\n" +
-	"\x13types/invoice.proto\x12\x0eprotocol.types\x1a\x1fgoogle/protobuf/timestamp.proto\"x\n" +
+	"\x13types/invoice.proto\x12\x0eprotocol.types\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x10types/uuid.proto\"x\n" +
 	"\x04Item\x12 \n" +
 	"\vdescription\x18\x01 \x01(\tR\vdescription\x12\x1a\n" +
 	"\bquantity\x18\x02 \x01(\x05R\bquantity\x12\x1c\n" +
 	"\tunitPrice\x18\x03 \x01(\x03R\tunitPrice\x12\x14\n" +
-	"\x05total\x18\x04 \x01(\x03R\x05total\"\xd9\x02\n" +
-	"\aInvoice\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1e\n" +
+	"\x05total\x18\x04 \x01(\x03R\x05total\"\x85\x03\n" +
+	"\aInvoice\x12$\n" +
+	"\x02id\x18\x01 \x01(\v2\x14.protocol.types.UUIDR\x02id\x124\n" +
 	"\n" +
-	"customerId\x18\x02 \x01(\tR\n" +
+	"customerId\x18\x02 \x01(\v2\x14.protocol.types.UUIDR\n" +
 	"customerId\x12\x16\n" +
 	"\x06amount\x18\x03 \x01(\x03R\x06amount\x12\x1a\n" +
 	"\bcurrency\x18\x04 \x01(\tR\bcurrency\x124\n" +
@@ -237,18 +237,21 @@ var file_types_invoice_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_types_invoice_proto_goTypes = []any{
 	(*Item)(nil),                  // 0: protocol.types.Item
 	(*Invoice)(nil),               // 1: protocol.types.Invoice
-	(*timestamppb.Timestamp)(nil), // 2: google.protobuf.Timestamp
+	(*UUID)(nil),                  // 2: protocol.types.UUID
+	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
 }
 var file_types_invoice_proto_depIdxs = []int32{
-	2, // 0: protocol.types.Invoice.dueDate:type_name -> google.protobuf.Timestamp
-	2, // 1: protocol.types.Invoice.createdAt:type_name -> google.protobuf.Timestamp
-	2, // 2: protocol.types.Invoice.updatedAt:type_name -> google.protobuf.Timestamp
-	0, // 3: protocol.types.Invoice.items:type_name -> protocol.types.Item
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	2, // 0: protocol.types.Invoice.id:type_name -> protocol.types.UUID
+	2, // 1: protocol.types.Invoice.customerId:type_name -> protocol.types.UUID
+	3, // 2: protocol.types.Invoice.dueDate:type_name -> google.protobuf.Timestamp
+	3, // 3: protocol.types.Invoice.createdAt:type_name -> google.protobuf.Timestamp
+	3, // 4: protocol.types.Invoice.updatedAt:type_name -> google.protobuf.Timestamp
+	0, // 5: protocol.types.Invoice.items:type_name -> protocol.types.Item
+	6, // [6:6] is the sub-list for method output_type
+	6, // [6:6] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_types_invoice_proto_init() }
@@ -256,6 +259,7 @@ func file_types_invoice_proto_init() {
 	if File_types_invoice_proto != nil {
 		return
 	}
+	file_types_uuid_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

@@ -8,9 +8,6 @@ import (
 	"storage-service/internal/dto"
 )
 
-type Storage interface {
-}
-
 type Invoice struct {
 	qs *queries.Queries
 }

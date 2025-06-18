@@ -27,7 +27,7 @@ type Invoice struct {
 
 type Item struct {
 	Description string
-	Quantity    int16
+	Quantity    int32
 	UnitPrice   int64
 	Total       int64
 }
