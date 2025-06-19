@@ -8,7 +8,7 @@ import (
 )
 
 type StorageService interface {
-	GetOutboxMessages(ctx context.Context, maxCount int, retryIn time.Duration) ([]dto.OutboxMessage, error)
+	GetOutboxMessages(ctx context.Context, maxCount int32, retryIn time.Duration) ([]dto.OutboxMessage, error)
 	DeleteOutboxMessage(ctx context.Context, id int64) error
 }
 
@@ -17,18 +17,22 @@ type KafkaProducer interface {
 }
 
 type OutboxDispatcher struct {
-	cfg            Config
+	cfg            OutboxDispatcherConfig
 	storageService StorageService
 	kafkaProducer  KafkaProducer
 }
 
-type Config struct {
-	NumWorkers       int
+type OutboxDispatcherConfig struct {
+	NumWorkers       int32
 	RetryIn          time.Duration
 	DispatchInterval time.Duration
 }
 
-func NewOutboxDispatcher(cfg Config, storageService StorageService, kafkaProducer KafkaProducer) *OutboxDispatcher {
+func NewOutboxDispatcher(
+	cfg OutboxDispatcherConfig,
+	storageService StorageService,
+	kafkaProducer KafkaProducer,
+) *OutboxDispatcher {
 	return &OutboxDispatcher{
 		cfg:            cfg,
 		storageService: storageService,
@@ -36,21 +40,25 @@ func NewOutboxDispatcher(cfg Config, storageService StorageService, kafkaProduce
 	}
 }
 
-func (d *OutboxDispatcher) Run(ctx context.Context, numWorkers int) <-chan error {
-	errChs := make([]<-chan error, numWorkers+1)
+func (d *OutboxDispatcher) Run(ctx context.Context) <-chan error {
+	errChs := make([]<-chan error, d.cfg.NumWorkers+1)
 
-	const overhead int = 1 // making buffer length > numWorkers to prevent workers idling while waiting db response
+	const overhead int32 = 1 // making buffer length > numWorkers to prevent workers idling while waiting db response
 	genOut, genErr := d.messagesGenerator(ctx, d.cfg.NumWorkers*(overhead+1), d.cfg.RetryIn)
 	errChs[0] = genErr
 
-	for i := range numWorkers {
+	for i := range d.cfg.NumWorkers {
 		errChs[i+1] = d.messagesSender(ctx, genOut)
 	}
 
 	return uniteErrors(errChs...)
 }
 
-func (d *OutboxDispatcher) messagesGenerator(ctx context.Context, bufLen int, retryIn time.Duration) (<-chan dto.OutboxMessage, <-chan error) {
+func (d *OutboxDispatcher) messagesGenerator(
+	ctx context.Context,
+	bufLen int32,
+	retryIn time.Duration,
+) (<-chan dto.OutboxMessage, <-chan error) {
 	out := make(chan dto.OutboxMessage, bufLen)
 	errCh := make(chan error)
 
@@ -64,7 +72,7 @@ func (d *OutboxDispatcher) messagesGenerator(ctx context.Context, bufLen int, re
 			ctx,
 			func(ctx context.Context) {
 				nextRequest = time.Now().Add(d.cfg.DispatchInterval)
-				msgs, err := d.storageService.GetOutboxMessages(ctx, bufLen-len(out), retryIn)
+				msgs, err := d.storageService.GetOutboxMessages(ctx, bufLen-int32(len(out)), retryIn)
 				if err != nil {
 					errCh <- err
 					return

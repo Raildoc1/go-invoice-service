@@ -1,17 +1,22 @@
 package services
 
 import (
+	"context"
 	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
+
+type KafkaProducerConfig struct {
+	ServerAddress string
+}
 
 type KafkaProducer struct {
 	producer *kafka.Producer
 }
 
-func NewKafkaProducer(serverAddress string) (*KafkaProducer, error) {
+func NewKafkaProducer(cfg KafkaProducerConfig) (*KafkaProducer, error) {
 	p, err := kafka.NewProducer(&kafka.ConfigMap{
-		"bootstrap.servers": serverAddress,
+		"bootstrap.servers": cfg.ServerAddress,
 	})
 	if err != nil {
 		return nil, err
@@ -24,7 +29,7 @@ func (p *KafkaProducer) Close() {
 	p.producer.Close()
 }
 
-func (p *KafkaProducer) SendMessage(topic string, payload []byte) error {
+func (p *KafkaProducer) SendMessage(ctx context.Context, topic string, payload []byte) error {
 	msg := &kafka.Message{
 		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
 		Value:          payload,
@@ -36,11 +41,16 @@ func (p *KafkaProducer) SendMessage(topic string, payload []byte) error {
 		return fmt.Errorf("failed to send message to Kafka server: %w", err)
 	}
 
-	e := <-deliveryChan
-	m := e.(*kafka.Message)
-
-	if m.TopicPartition.Error != nil {
-		return fmt.Errorf("failed to send message to Kafka server: %w", m.TopicPartition.Error)
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case e := <-deliveryChan:
+			m := e.(*kafka.Message)
+			if m.TopicPartition.Error != nil {
+				return fmt.Errorf("failed to send message to Kafka server: %w", m.TopicPartition.Error)
+			}
+			return nil
+		}
 	}
-	return nil
 }

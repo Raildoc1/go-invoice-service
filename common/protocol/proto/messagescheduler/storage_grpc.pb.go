@@ -19,101 +19,139 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	InvoiceStorage_Upload_FullMethodName = "/protocol.messages_scheduler.storage.InvoiceStorage/Upload"
+	OutboxStorage_Get_FullMethodName    = "/protocol.messages_scheduler.storage.OutboxStorage/Get"
+	OutboxStorage_Delete_FullMethodName = "/protocol.messages_scheduler.storage.OutboxStorage/Delete"
 )
 
-// InvoiceStorageClient is the client API for InvoiceStorage service.
+// OutboxStorageClient is the client API for OutboxStorage service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type InvoiceStorageClient interface {
-	Upload(ctx context.Context, in *UploadRequest, opts ...grpc.CallOption) (*UploadResponse, error)
+type OutboxStorageClient interface {
+	Get(ctx context.Context, in *GetMessagesRequest, opts ...grpc.CallOption) (*GetMessagesResponse, error)
+	Delete(ctx context.Context, in *DeleteMessageRequest, opts ...grpc.CallOption) (*DeleteMessageResponse, error)
 }
 
-type invoiceStorageClient struct {
+type outboxStorageClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewInvoiceStorageClient(cc grpc.ClientConnInterface) InvoiceStorageClient {
-	return &invoiceStorageClient{cc}
+func NewOutboxStorageClient(cc grpc.ClientConnInterface) OutboxStorageClient {
+	return &outboxStorageClient{cc}
 }
 
-func (c *invoiceStorageClient) Upload(ctx context.Context, in *UploadRequest, opts ...grpc.CallOption) (*UploadResponse, error) {
+func (c *outboxStorageClient) Get(ctx context.Context, in *GetMessagesRequest, opts ...grpc.CallOption) (*GetMessagesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UploadResponse)
-	err := c.cc.Invoke(ctx, InvoiceStorage_Upload_FullMethodName, in, out, cOpts...)
+	out := new(GetMessagesResponse)
+	err := c.cc.Invoke(ctx, OutboxStorage_Get_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// InvoiceStorageServer is the server API for InvoiceStorage service.
-// All implementations must embed UnimplementedInvoiceStorageServer
-// for forward compatibility.
-type InvoiceStorageServer interface {
-	Upload(context.Context, *UploadRequest) (*UploadResponse, error)
-	mustEmbedUnimplementedInvoiceStorageServer()
+func (c *outboxStorageClient) Delete(ctx context.Context, in *DeleteMessageRequest, opts ...grpc.CallOption) (*DeleteMessageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteMessageResponse)
+	err := c.cc.Invoke(ctx, OutboxStorage_Delete_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
-// UnimplementedInvoiceStorageServer must be embedded to have
+// OutboxStorageServer is the server API for OutboxStorage service.
+// All implementations must embed UnimplementedOutboxStorageServer
+// for forward compatibility.
+type OutboxStorageServer interface {
+	Get(context.Context, *GetMessagesRequest) (*GetMessagesResponse, error)
+	Delete(context.Context, *DeleteMessageRequest) (*DeleteMessageResponse, error)
+	mustEmbedUnimplementedOutboxStorageServer()
+}
+
+// UnimplementedOutboxStorageServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedInvoiceStorageServer struct{}
+type UnimplementedOutboxStorageServer struct{}
 
-func (UnimplementedInvoiceStorageServer) Upload(context.Context, *UploadRequest) (*UploadResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Upload not implemented")
+func (UnimplementedOutboxStorageServer) Get(context.Context, *GetMessagesRequest) (*GetMessagesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
 }
-func (UnimplementedInvoiceStorageServer) mustEmbedUnimplementedInvoiceStorageServer() {}
-func (UnimplementedInvoiceStorageServer) testEmbeddedByValue()                        {}
+func (UnimplementedOutboxStorageServer) Delete(context.Context, *DeleteMessageRequest) (*DeleteMessageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedOutboxStorageServer) mustEmbedUnimplementedOutboxStorageServer() {}
+func (UnimplementedOutboxStorageServer) testEmbeddedByValue()                       {}
 
-// UnsafeInvoiceStorageServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to InvoiceStorageServer will
+// UnsafeOutboxStorageServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to OutboxStorageServer will
 // result in compilation errors.
-type UnsafeInvoiceStorageServer interface {
-	mustEmbedUnimplementedInvoiceStorageServer()
+type UnsafeOutboxStorageServer interface {
+	mustEmbedUnimplementedOutboxStorageServer()
 }
 
-func RegisterInvoiceStorageServer(s grpc.ServiceRegistrar, srv InvoiceStorageServer) {
-	// If the following call pancis, it indicates UnimplementedInvoiceStorageServer was
+func RegisterOutboxStorageServer(s grpc.ServiceRegistrar, srv OutboxStorageServer) {
+	// If the following call pancis, it indicates UnimplementedOutboxStorageServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&InvoiceStorage_ServiceDesc, srv)
+	s.RegisterService(&OutboxStorage_ServiceDesc, srv)
 }
 
-func _InvoiceStorage_Upload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UploadRequest)
+func _OutboxStorage_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMessagesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(InvoiceStorageServer).Upload(ctx, in)
+		return srv.(OutboxStorageServer).Get(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: InvoiceStorage_Upload_FullMethodName,
+		FullMethod: OutboxStorage_Get_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(InvoiceStorageServer).Upload(ctx, req.(*UploadRequest))
+		return srv.(OutboxStorageServer).Get(ctx, req.(*GetMessagesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// InvoiceStorage_ServiceDesc is the grpc.ServiceDesc for InvoiceStorage service.
+func _OutboxStorage_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OutboxStorageServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OutboxStorage_Delete_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OutboxStorageServer).Delete(ctx, req.(*DeleteMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// OutboxStorage_ServiceDesc is the grpc.ServiceDesc for OutboxStorage service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var InvoiceStorage_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "protocol.messages_scheduler.storage.InvoiceStorage",
-	HandlerType: (*InvoiceStorageServer)(nil),
+var OutboxStorage_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "protocol.messages_scheduler.storage.OutboxStorage",
+	HandlerType: (*OutboxStorageServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Upload",
-			Handler:    _InvoiceStorage_Upload_Handler,
+			MethodName: "Get",
+			Handler:    _OutboxStorage_Get_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _OutboxStorage_Delete_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

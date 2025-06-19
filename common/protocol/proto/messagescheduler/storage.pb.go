@@ -23,7 +23,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type UploadRequest struct {
+type GetMessagesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	MaxCount      *int32                 `protobuf:"varint,1,opt,name=maxCount" json:"maxCount,omitempty"`
 	RetryAfter    *durationpb.Duration   `protobuf:"bytes,2,opt,name=retryAfter" json:"retryAfter,omitempty"`
@@ -31,20 +31,20 @@ type UploadRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *UploadRequest) Reset() {
-	*x = UploadRequest{}
+func (x *GetMessagesRequest) Reset() {
+	*x = GetMessagesRequest{}
 	mi := &file_messagescheduler_storage_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UploadRequest) String() string {
+func (x *GetMessagesRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UploadRequest) ProtoMessage() {}
+func (*GetMessagesRequest) ProtoMessage() {}
 
-func (x *UploadRequest) ProtoReflect() protoreflect.Message {
+func (x *GetMessagesRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_messagescheduler_storage_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -56,26 +56,26 @@ func (x *UploadRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UploadRequest.ProtoReflect.Descriptor instead.
-func (*UploadRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetMessagesRequest.ProtoReflect.Descriptor instead.
+func (*GetMessagesRequest) Descriptor() ([]byte, []int) {
 	return file_messagescheduler_storage_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *UploadRequest) GetMaxCount() int32 {
+func (x *GetMessagesRequest) GetMaxCount() int32 {
 	if x != nil && x.MaxCount != nil {
 		return *x.MaxCount
 	}
 	return 0
 }
 
-func (x *UploadRequest) GetRetryAfter() *durationpb.Duration {
+func (x *GetMessagesRequest) GetRetryAfter() *durationpb.Duration {
 	if x != nil {
 		return x.RetryAfter
 	}
 	return nil
 }
 
-type UploadResponse struct {
+type GetMessagesResponse struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	OutboxMessages []*types.OutboxMessage `protobuf:"bytes,1,rep,name=outboxMessages" json:"outboxMessages,omitempty"`
 	Error          *string                `protobuf:"bytes,2,opt,name=error" json:"error,omitempty"`
@@ -83,20 +83,20 @@ type UploadResponse struct {
 	sizeCache      protoimpl.SizeCache
 }
 
-func (x *UploadResponse) Reset() {
-	*x = UploadResponse{}
+func (x *GetMessagesResponse) Reset() {
+	*x = GetMessagesResponse{}
 	mi := &file_messagescheduler_storage_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UploadResponse) String() string {
+func (x *GetMessagesResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UploadResponse) ProtoMessage() {}
+func (*GetMessagesResponse) ProtoMessage() {}
 
-func (x *UploadResponse) ProtoReflect() protoreflect.Message {
+func (x *GetMessagesResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_messagescheduler_storage_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -108,19 +108,107 @@ func (x *UploadResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UploadResponse.ProtoReflect.Descriptor instead.
-func (*UploadResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetMessagesResponse.ProtoReflect.Descriptor instead.
+func (*GetMessagesResponse) Descriptor() ([]byte, []int) {
 	return file_messagescheduler_storage_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *UploadResponse) GetOutboxMessages() []*types.OutboxMessage {
+func (x *GetMessagesResponse) GetOutboxMessages() []*types.OutboxMessage {
 	if x != nil {
 		return x.OutboxMessages
 	}
 	return nil
 }
 
-func (x *UploadResponse) GetError() string {
+func (x *GetMessagesResponse) GetError() string {
+	if x != nil && x.Error != nil {
+		return *x.Error
+	}
+	return ""
+}
+
+type DeleteMessageRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            *int64                 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteMessageRequest) Reset() {
+	*x = DeleteMessageRequest{}
+	mi := &file_messagescheduler_storage_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteMessageRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteMessageRequest) ProtoMessage() {}
+
+func (x *DeleteMessageRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_messagescheduler_storage_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteMessageRequest.ProtoReflect.Descriptor instead.
+func (*DeleteMessageRequest) Descriptor() ([]byte, []int) {
+	return file_messagescheduler_storage_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *DeleteMessageRequest) GetId() int64 {
+	if x != nil && x.Id != nil {
+		return *x.Id
+	}
+	return 0
+}
+
+type DeleteMessageResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Error         *string                `protobuf:"bytes,1,opt,name=error" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteMessageResponse) Reset() {
+	*x = DeleteMessageResponse{}
+	mi := &file_messagescheduler_storage_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteMessageResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteMessageResponse) ProtoMessage() {}
+
+func (x *DeleteMessageResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_messagescheduler_storage_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteMessageResponse.ProtoReflect.Descriptor instead.
+func (*DeleteMessageResponse) Descriptor() ([]byte, []int) {
+	return file_messagescheduler_storage_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *DeleteMessageResponse) GetError() string {
 	if x != nil && x.Error != nil {
 		return *x.Error
 	}
@@ -131,17 +219,22 @@ var File_messagescheduler_storage_proto protoreflect.FileDescriptor
 
 const file_messagescheduler_storage_proto_rawDesc = "" +
 	"\n" +
-	"\x1emessagescheduler/storage.proto\x12#protocol.messages_scheduler.storage\x1a\x1egoogle/protobuf/duration.proto\x1a\x1atypes/outbox-message.proto\"f\n" +
-	"\rUploadRequest\x12\x1a\n" +
+	"\x1emessagescheduler/storage.proto\x12#protocol.messages_scheduler.storage\x1a\x1egoogle/protobuf/duration.proto\x1a\x1atypes/outbox-message.proto\"k\n" +
+	"\x12GetMessagesRequest\x12\x1a\n" +
 	"\bmaxCount\x18\x01 \x01(\x05R\bmaxCount\x129\n" +
 	"\n" +
 	"retryAfter\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\n" +
-	"retryAfter\"m\n" +
-	"\x0eUploadResponse\x12E\n" +
+	"retryAfter\"r\n" +
+	"\x13GetMessagesResponse\x12E\n" +
 	"\x0eoutboxMessages\x18\x01 \x03(\v2\x1d.protocol.types.OutboxMessageR\x0eoutboxMessages\x12\x14\n" +
-	"\x05error\x18\x02 \x01(\tR\x05error2\x83\x01\n" +
-	"\x0eInvoiceStorage\x12q\n" +
-	"\x06Upload\x122.protocol.messages_scheduler.storage.UploadRequest\x1a3.protocol.messages_scheduler.storage.UploadResponseB;Z9go-invoice-service/common/protocol/proto/messageschedulerb\beditionsp\xe8\a"
+	"\x05error\x18\x02 \x01(\tR\x05error\"&\n" +
+	"\x14DeleteMessageRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\"-\n" +
+	"\x15DeleteMessageResponse\x12\x14\n" +
+	"\x05error\x18\x01 \x01(\tR\x05error2\x8a\x02\n" +
+	"\rOutboxStorage\x12x\n" +
+	"\x03Get\x127.protocol.messages_scheduler.storage.GetMessagesRequest\x1a8.protocol.messages_scheduler.storage.GetMessagesResponse\x12\x7f\n" +
+	"\x06Delete\x129.protocol.messages_scheduler.storage.DeleteMessageRequest\x1a:.protocol.messages_scheduler.storage.DeleteMessageResponseB;Z9go-invoice-service/common/protocol/proto/messageschedulerb\beditionsp\xe8\a"
 
 var (
 	file_messagescheduler_storage_proto_rawDescOnce sync.Once
@@ -155,20 +248,24 @@ func file_messagescheduler_storage_proto_rawDescGZIP() []byte {
 	return file_messagescheduler_storage_proto_rawDescData
 }
 
-var file_messagescheduler_storage_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_messagescheduler_storage_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_messagescheduler_storage_proto_goTypes = []any{
-	(*UploadRequest)(nil),       // 0: protocol.messages_scheduler.storage.UploadRequest
-	(*UploadResponse)(nil),      // 1: protocol.messages_scheduler.storage.UploadResponse
-	(*durationpb.Duration)(nil), // 2: google.protobuf.Duration
-	(*types.OutboxMessage)(nil), // 3: protocol.types.OutboxMessage
+	(*GetMessagesRequest)(nil),    // 0: protocol.messages_scheduler.storage.GetMessagesRequest
+	(*GetMessagesResponse)(nil),   // 1: protocol.messages_scheduler.storage.GetMessagesResponse
+	(*DeleteMessageRequest)(nil),  // 2: protocol.messages_scheduler.storage.DeleteMessageRequest
+	(*DeleteMessageResponse)(nil), // 3: protocol.messages_scheduler.storage.DeleteMessageResponse
+	(*durationpb.Duration)(nil),   // 4: google.protobuf.Duration
+	(*types.OutboxMessage)(nil),   // 5: protocol.types.OutboxMessage
 }
 var file_messagescheduler_storage_proto_depIdxs = []int32{
-	2, // 0: protocol.messages_scheduler.storage.UploadRequest.retryAfter:type_name -> google.protobuf.Duration
-	3, // 1: protocol.messages_scheduler.storage.UploadResponse.outboxMessages:type_name -> protocol.types.OutboxMessage
-	0, // 2: protocol.messages_scheduler.storage.InvoiceStorage.Upload:input_type -> protocol.messages_scheduler.storage.UploadRequest
-	1, // 3: protocol.messages_scheduler.storage.InvoiceStorage.Upload:output_type -> protocol.messages_scheduler.storage.UploadResponse
-	3, // [3:4] is the sub-list for method output_type
-	2, // [2:3] is the sub-list for method input_type
+	4, // 0: protocol.messages_scheduler.storage.GetMessagesRequest.retryAfter:type_name -> google.protobuf.Duration
+	5, // 1: protocol.messages_scheduler.storage.GetMessagesResponse.outboxMessages:type_name -> protocol.types.OutboxMessage
+	0, // 2: protocol.messages_scheduler.storage.OutboxStorage.Get:input_type -> protocol.messages_scheduler.storage.GetMessagesRequest
+	2, // 3: protocol.messages_scheduler.storage.OutboxStorage.Delete:input_type -> protocol.messages_scheduler.storage.DeleteMessageRequest
+	1, // 4: protocol.messages_scheduler.storage.OutboxStorage.Get:output_type -> protocol.messages_scheduler.storage.GetMessagesResponse
+	3, // 5: protocol.messages_scheduler.storage.OutboxStorage.Delete:output_type -> protocol.messages_scheduler.storage.DeleteMessageResponse
+	4, // [4:6] is the sub-list for method output_type
+	2, // [2:4] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
 	2, // [2:2] is the sub-list for extension extendee
 	0, // [0:2] is the sub-list for field type_name
@@ -185,7 +282,7 @@ func file_messagescheduler_storage_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_messagescheduler_storage_proto_rawDesc), len(file_messagescheduler_storage_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

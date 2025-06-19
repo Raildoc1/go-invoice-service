@@ -7,16 +7,25 @@ package protocol.messages_scheduler.storage;
 
 option go_package = "go-invoice-service/common/protocol/proto/messagescheduler";
 
-message UploadRequest {
+message GetMessagesRequest {
   int32 maxCount = 1;
   google.protobuf.Duration retryAfter = 2;
 }
 
-message UploadResponse {
+message GetMessagesResponse {
   repeated types.OutboxMessage outboxMessages = 1;
   string error = 2;
 }
 
-service InvoiceStorage {
-  rpc Upload (UploadRequest) returns (UploadResponse);
+message DeleteMessageRequest {
+  int64 id = 1;
+}
+
+message DeleteMessageResponse {
+  string error = 1;
+}
+
+service OutboxStorage {
+  rpc Get (GetMessagesRequest) returns (GetMessagesResponse);
+  rpc Delete (DeleteMessageRequest) returns (DeleteMessageResponse);
 }
