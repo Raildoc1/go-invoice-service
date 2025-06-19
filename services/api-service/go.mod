@@ -25,4 +25,4 @@ require (
 	golang.org/x/sys v0.31.0 // indirect
 )
 
-replace go-invoice-service/common => ../common
+replace go-invoice-service/common => ./../../common

@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.29.3
-// source: apiservice/storage/storage.proto
+// source: messagescheduler/storage.proto
 
-package storage
+package messagescheduler
 
 import (
 	context "context"
@@ -19,7 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	InvoiceStorage_Upload_FullMethodName = "/protocol.api_service.storage.InvoiceStorage/Upload"
+	InvoiceStorage_Upload_FullMethodName = "/protocol.messages_scheduler.storage.InvoiceStorage/Upload"
 )
 
 // InvoiceStorageClient is the client API for InvoiceStorage service.
@@ -108,7 +108,7 @@ func _InvoiceStorage_Upload_Handler(srv interface{}, ctx context.Context, dec fu
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var InvoiceStorage_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "protocol.api_service.storage.InvoiceStorage",
+	ServiceName: "protocol.messages_scheduler.storage.InvoiceStorage",
 	HandlerType: (*InvoiceStorageServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -117,5 +117,5 @@ var InvoiceStorage_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "apiservice/storage/storage.proto",
+	Metadata: "messagescheduler/storage.proto",
 }

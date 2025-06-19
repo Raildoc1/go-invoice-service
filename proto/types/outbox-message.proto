@@ -1,0 +1,11 @@
+edition = "2023";
+
+package protocol.types;
+
+option go_package = "go-invoice-service/common/protocol/proto/types";
+
+message OutboxMessage {
+  int64 id = 1;
+  string topic = 2;
+  bytes payload = 3;
+}

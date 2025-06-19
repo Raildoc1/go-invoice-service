@@ -33,7 +33,7 @@ func (r *Outbox) ScheduleMessage(ctx context.Context, tx *sql.Tx, message dto.Ou
 func convertOutboxMessage(message dto.OutboxMessage, sendAt time.Time) queries.ScheduleMessageParams {
 	return queries.ScheduleMessageParams{
 		Payload:    message.Payload,
-		Topic:      message.Topic,
+		Topic:      string(message.Topic),
 		NextSendAt: sendAt,
 	}
 }

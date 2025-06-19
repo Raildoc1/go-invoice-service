@@ -25,7 +25,7 @@ create table invoice_items
 
 create table outbox
 (
-    id           int generated always as identity primary key,
+    id           bigint generated always as identity primary key,
     payload      jsonb     not null,
     topic        text      not null,
     next_send_at timestamp not null

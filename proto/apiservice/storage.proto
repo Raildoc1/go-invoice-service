@@ -4,7 +4,7 @@ import "types/invoice.proto";
 
 package protocol.api_service.storage;
 
-option go_package = "go-invoice-service/common/protocol/proto/apiservice/storage";
+option go_package = "go-invoice-service/common/protocol/proto/apiservice";
 
 message UploadRequest {
   types.Invoice invoice = 1;

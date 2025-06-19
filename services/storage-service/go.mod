@@ -27,4 +27,4 @@ require (
 	google.golang.org/protobuf v1.36.6 // indirect
 )
 
-replace go-invoice-service/common => ../common
+replace go-invoice-service/common => ./../../common

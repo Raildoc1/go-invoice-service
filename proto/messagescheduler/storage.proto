@@ -1,0 +1,22 @@
+edition = "2023";
+
+import "google/protobuf/duration.proto";
+import "types/outbox-message.proto";
+
+package protocol.messages_scheduler.storage;
+
+option go_package = "go-invoice-service/common/protocol/proto/messagescheduler";
+
+message UploadRequest {
+  int32 maxCount = 1;
+  google.protobuf.Duration retryAfter = 2;
+}
+
+message UploadResponse {
+  repeated types.OutboxMessage outboxMessages = 1;
+  string error = 2;
+}
+
+service InvoiceStorage {
+  rpc Upload (UploadRequest) returns (UploadResponse);
+}

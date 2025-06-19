@@ -33,7 +33,7 @@ type InvoiceItem struct {
 }
 
 type Outbox struct {
-	ID         int32
+	ID         int64
 	Payload    json.RawMessage
 	Topic      string
 	NextSendAt time.Time
