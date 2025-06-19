@@ -5,6 +5,7 @@
 package queries
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -31,8 +32,9 @@ type InvoiceItem struct {
 	Total       int64
 }
 
-type NewInvoiceOutbox struct {
-	ID        int32
-	InvoiceID uuid.UUID
-	RetryTime time.Time
+type Outbox struct {
+	ID         int32
+	Payload    json.RawMessage
+	Topic      string
+	NextSendAt time.Time
 }

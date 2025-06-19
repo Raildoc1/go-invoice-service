@@ -21,7 +21,7 @@ func NewInvoice(dbtx queries.DBTX) *Invoice {
 func (r *Invoice) Add(ctx context.Context, tx *sql.Tx, invoice dto.Invoice, status dto.InvoiceStatus) error {
 	qs := r.qs.WithTx(tx)
 
-	err := qs.AddInvoice(ctx, convert(invoice, status))
+	err := qs.AddInvoice(ctx, convertInvoice(invoice, status))
 	if err != nil {
 		return fmt.Errorf("add invoice query failed: %w", err)
 	}
@@ -29,7 +29,7 @@ func (r *Invoice) Add(ctx context.Context, tx *sql.Tx, invoice dto.Invoice, stat
 	return nil
 }
 
-func convert(invoice dto.Invoice, status dto.InvoiceStatus) queries.AddInvoiceParams {
+func convertInvoice(invoice dto.Invoice, status dto.InvoiceStatus) queries.AddInvoiceParams {
 	return queries.AddInvoiceParams{
 		ID:         invoice.ID,
 		CustomerID: invoice.CustomerID,

@@ -23,11 +23,12 @@ create table invoice_items
     total       bigint                        not null
 );
 
-create table new_invoice_outbox
+create table outbox
 (
-    id         int generated always as identity primary key,
-    invoice_id uuid references invoices (id) not null,
-    retry_time timestamp                     not null
+    id           int generated always as identity primary key,
+    payload      jsonb     not null,
+    topic        text      not null,
+    next_send_at timestamp not null
 );
 
 commit;
