@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"context"
+	"go-invoice-service/common/pkg/chutils"
 	"message-sheduler-service/internal/dto"
-	"sync"
 	"time"
 )
 
@@ -51,44 +51,22 @@ func (d *OutboxDispatcher) Run(ctx context.Context) <-chan error {
 		errChs[i+1] = d.messagesSender(ctx, genOut)
 	}
 
-	return uniteErrors(errChs...)
+	return chutils.FanIn(errChs...)
 }
 
 func (d *OutboxDispatcher) messagesGenerator(
 	ctx context.Context,
-	bufLen int32,
+	buffCap int32,
 	retryIn time.Duration,
 ) (<-chan dto.OutboxMessage, <-chan error) {
-	out := make(chan dto.OutboxMessage, bufLen)
-	errCh := make(chan error)
-
-	go func(ctx context.Context) {
-		defer close(out)
-		defer close(errCh)
-
-		var nextRequest time.Time
-
-		loopCtx(
-			ctx,
-			func(ctx context.Context) {
-				nextRequest = time.Now().Add(d.cfg.DispatchInterval)
-				msgs, err := d.storageService.GetOutboxMessages(ctx, bufLen-int32(len(out)), retryIn)
-				if err != nil {
-					errCh <- err
-					return
-				}
-				for _, msg := range msgs {
-					out <- msg
-				}
-				timeToWait := nextRequest.Sub(time.Now())
-				if timeToWait > 0 {
-					time.Sleep(timeToWait)
-				}
-			},
-		)
-	}(ctx)
-
-	return out, errCh
+	return chutils.Generator[dto.OutboxMessage](
+		ctx,
+		buffCap,
+		d.cfg.DispatchInterval,
+		func(ctx context.Context, buffLen int32) ([]dto.OutboxMessage, error) {
+			return d.storageService.GetOutboxMessages(ctx, buffCap-buffLen, retryIn)
+		},
+	)
 }
 
 func (d *OutboxDispatcher) messagesSender(ctx context.Context, in <-chan dto.OutboxMessage) <-chan error {
@@ -115,37 +93,4 @@ func (d *OutboxDispatcher) messagesSender(ctx context.Context, in <-chan dto.Out
 	}(ctx)
 
 	return errCh
-}
-
-func uniteErrors(errChs ...<-chan error) <-chan error {
-	var wg sync.WaitGroup
-	out := make(chan error)
-
-	for _, errCh := range errChs {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for err := range errCh {
-				out <- err
-			}
-		}()
-	}
-
-	go func() {
-		wg.Wait()
-		close(out)
-	}()
-
-	return out
-}
-
-func loopCtx(ctx context.Context, f func(context.Context)) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			f(ctx)
-		}
-	}
 }
