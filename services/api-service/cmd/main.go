@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"go-invoice-service/api-service/cmd/config"
-	"go-invoice-service/api-service/internal/http"
+	"go-invoice-service/api-service/internal/httpserver"
 	"go-invoice-service/api-service/internal/services"
 	"go-invoice-service/common/pkg/jwtfactory"
 	"go-invoice-service/common/pkg/logging"
@@ -12,6 +13,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
 	"log"
+	"net/http"
 	"os/signal"
 	"syscall"
 )
@@ -45,9 +47,9 @@ func main() {
 
 	tokenFactory := jwtfactory.New(cfg.JWTConfig)
 
-	httpServer := http.NewServer(cfg.HTTPServerConfig, tokenFactory.GetJWTAuth(), storageService, logger)
+	httpServer := httpserver.New(cfg.HTTPServerConfig, tokenFactory.GetJWTAuth(), storageService, logger)
 
-	if err := run(rootCtx, httpServer, logger); err != nil {
+	if err := run(rootCtx, cfg, httpServer, logger); err != nil {
 		logger.ErrorCtx(rootCtx, "Service shutdown with error", zap.Error(err))
 	} else {
 		logger.InfoCtx(rootCtx, "Service shutdown gracefully")
@@ -56,18 +58,39 @@ func main() {
 
 func run(
 	rootCtx context.Context,
-	httpServer *http.Server,
+	cfg *config.Config,
+	httpServer *httpserver.Server,
 	logger *logging.ZapLogger,
 ) error {
 	g, ctx := errgroup.WithContext(rootCtx)
 
+	context.AfterFunc(ctx, func() {
+		timeoutCtx, cancelCtx := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
+		defer cancelCtx()
+
+		<-timeoutCtx.Done()
+		log.Fatal("failed to gracefully shutdown the server")
+	})
+
 	g.Go(func() error {
 		defer logger.InfoCtx(ctx, "HTTP server stopped")
 
-		if err := httpServer.Run(); err != nil {
+		logger.InfoCtx(ctx, fmt.Sprintf("starting HTTP server '%s'", cfg.HTTPServerConfig.ServerAddress))
+		if err := httpServer.Run(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			return fmt.Errorf("HTTP server error: %w", err)
 		}
 
+		return nil
+	})
+
+	g.Go(func() error {
+		defer logger.InfoCtx(ctx, "HTTP server shutdown")
+		<-ctx.Done()
+		ctx, cancel := context.WithTimeout(context.Background(), cfg.HTTPServerConfig.ShutdownTimeout)
+		defer cancel()
+		if err := httpServer.Shutdown(ctx); err != nil {
+			return fmt.Errorf("shutdown HTTP server error: %w", err)
+		}
 		return nil
 	})
 

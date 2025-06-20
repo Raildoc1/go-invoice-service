@@ -2,7 +2,7 @@ package config
 
 import (
 	"flag"
-	"go-invoice-service/api-service/internal/http"
+	"go-invoice-service/api-service/internal/httpserver"
 	"go-invoice-service/api-service/internal/services"
 	"go-invoice-service/common/pkg/flagtypes"
 	"go-invoice-service/common/pkg/jwtfactory"
@@ -18,8 +18,9 @@ const (
 )
 
 const (
-	defaultHTTPAddress    = "localhost:8080"
-	defaultStorageAddress = "localhost:5000"
+	defaultHTTPAddress     = "localhost:8080"
+	defaultStorageAddress  = "localhost:5000"
+	defaultShutdownTimeout = 5 * time.Second
 )
 
 var defaultRetryAttempts = []time.Duration{time.Second, 3 * time.Second, 5 * time.Second}
@@ -27,7 +28,8 @@ var defaultRetryAttempts = []time.Duration{time.Second, 3 * time.Second, 5 * tim
 type Config struct {
 	StorageConfig    services.StorageConfig
 	JWTConfig        jwtfactory.Config
-	HTTPServerConfig http.Config
+	HTTPServerConfig httpserver.Config
+	ShutdownTimeout  time.Duration
 }
 
 func Load() (*Config, error) {
@@ -74,8 +76,10 @@ func Load() (*Config, error) {
 		StorageConfig: services.StorageConfig{
 			ServerAddress: storageAddress,
 		},
-		HTTPServerConfig: http.Config{
-			ServerAddress: httpAddress,
+		HTTPServerConfig: httpserver.Config{
+			ServerAddress:   httpAddress,
+			ShutdownTimeout: defaultShutdownTimeout,
 		},
+		ShutdownTimeout: defaultShutdownTimeout,
 	}, nil
 }

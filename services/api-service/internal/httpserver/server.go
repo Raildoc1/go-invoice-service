@@ -1,11 +1,11 @@
-package http
+package httpserver
 
 import (
 	"compress/gzip"
 	"context"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
-	"go-invoice-service/api-service/internal/http/handlers"
+	"go-invoice-service/api-service/internal/httpserver/handlers"
 	"go-invoice-service/common/pkg/http/middleware"
 	"go-invoice-service/common/pkg/logging"
 	"net/http"
@@ -23,7 +23,7 @@ type Server struct {
 	logger         *logging.ZapLogger
 }
 
-func NewServer(
+func New(
 	cfg Config,
 	tokenAuth *jwtauth.JWTAuth,
 	storageService StorageService,
