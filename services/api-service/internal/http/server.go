@@ -11,19 +11,30 @@ import (
 	"net/http"
 )
 
-type Server struct {
-	srv          *http.Server
-	cfg          Config
-	jwtTokenAuth *jwtauth.JWTAuth
-	logger       *logging.ZapLogger
+type StorageService interface {
+	handlers.StorageService
 }
 
-func NewServer(cfg Config, tokenAuth *jwtauth.JWTAuth, logger *logging.ZapLogger) *Server {
+type Server struct {
+	srv            *http.Server
+	cfg            Config
+	jwtTokenAuth   *jwtauth.JWTAuth
+	storageService StorageService
+	logger         *logging.ZapLogger
+}
+
+func NewServer(
+	cfg Config,
+	tokenAuth *jwtauth.JWTAuth,
+	storageService StorageService,
+	logger *logging.ZapLogger,
+) *Server {
 	return &Server{
-		srv:          nil,
-		cfg:          cfg,
-		jwtTokenAuth: tokenAuth,
-		logger:       logger,
+		srv:            nil,
+		cfg:            cfg,
+		jwtTokenAuth:   tokenAuth,
+		storageService: storageService,
+		logger:         logger,
 	}
 }
 
@@ -49,7 +60,7 @@ func (s *Server) createMux() *chi.Mux {
 	responseCompression := middleware.NewResponseCompressor(s.logger, gzip.BestSpeed)
 
 	//handlers
-	invoiceHandler := handlers.NewInvoice()
+	invoiceHandler := handlers.NewInvoice(s.storageService, s.logger)
 	authHandler := handlers.NewAuth()
 
 	// router
@@ -59,12 +70,12 @@ func (s *Server) createMux() *chi.Mux {
 		router.Post("/register", authHandler.Register)
 		router.Post("/login", authHandler.Login)
 		router.With(
-			jwtauth.Verifier(s.jwtTokenAuth),
-			jwtauth.Authenticator(s.jwtTokenAuth),
+			// jwtauth.Verifier(s.jwtTokenAuth),
+			// jwtauth.Authenticator(s.jwtTokenAuth),
 			requestDecompression.CreateHandler,
 			responseCompression.CreateHandler,
 		).Route("/invoice/", func(router chi.Router) {
-			router.Post("/create", invoiceHandler.UploadNew)
+			router.Post("/create", invoiceHandler.Upload)
 			router.Get("/get", invoiceHandler.Get)
 		})
 	})

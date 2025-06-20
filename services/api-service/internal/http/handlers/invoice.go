@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"github.com/shopspring/decimal"
 	"go-invoice-service/api-service/internal/dto"
 	"go-invoice-service/common/pkg/http/utils"
 	"go-invoice-service/common/pkg/logging"
@@ -10,23 +11,23 @@ import (
 	"net/http"
 )
 
-type InvoiceController interface {
-	UploadNew(ctx context.Context, invoice dto.Invoice) error
+type StorageService interface {
+	Upload(ctx context.Context, invoice dto.Invoice) error
 }
 
 type Invoice struct {
-	controller InvoiceController
-	logger     *logging.ZapLogger
+	storageService StorageService
+	logger         *logging.ZapLogger
 }
 
-func NewInvoice(controller InvoiceController, logger *logging.ZapLogger) *Invoice {
+func NewInvoice(storageService StorageService, logger *logging.ZapLogger) *Invoice {
 	return &Invoice{
-		controller: controller,
-		logger:     logger,
+		storageService: storageService,
+		logger:         logger,
 	}
 }
 
-func (h *Invoice) UploadNew(w http.ResponseWriter, r *http.Request) {
+func (h *Invoice) Upload(w http.ResponseWriter, r *http.Request) {
 	requestJSON, err := utils.DecodeJSON[client.UploadInvoiceRequest](r.Body)
 	if err != nil {
 		h.logger.ErrorCtx(r.Context(), "Failed to decode request body", zap.Error(err))
@@ -34,7 +35,7 @@ func (h *Invoice) UploadNew(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.controller.UploadNew(r.Context(), convertInvoice(requestJSON.Invoice))
+	err = h.storageService.Upload(r.Context(), convertInvoice(requestJSON.Invoice))
 	if err != nil {
 		h.logger.ErrorCtx(r.Context(), "Failed to upload invoice", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -45,7 +46,7 @@ func convertInvoice(invoice client.Invoice) dto.Invoice {
 	return dto.Invoice{
 		ID:         invoice.ID,
 		CustomerID: invoice.CustomerID,
-		Amount:     invoice.Amount,
+		Amount:     convertCurrencyAmount(invoice.Amount),
 		Currency:   invoice.Currency,
 		DueDate:    invoice.DueDate,
 		CreatedAt:  invoice.CreatedAt,
@@ -67,9 +68,13 @@ func convertItem(item client.Item) dto.Item {
 	return dto.Item{
 		Description: item.Description,
 		Quantity:    item.Quantity,
-		UnitPrice:   item.UnitPrice,
-		Total:       item.Total,
+		UnitPrice:   convertCurrencyAmount(item.UnitPrice),
+		Total:       convertCurrencyAmount(item.Total),
 	}
+}
+
+func convertCurrencyAmount(val decimal.Decimal) int64 {
+	return val.Mul(decimal.NewFromInt32(1000)).IntPart()
 }
 
 func (h *Invoice) Get(w http.ResponseWriter, r *http.Request) {}

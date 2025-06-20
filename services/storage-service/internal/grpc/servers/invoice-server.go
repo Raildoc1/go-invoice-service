@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
-	pb "go-invoice-service/common/protocol/proto/apiservice/storage"
+	pb "go-invoice-service/common/protocol/proto/apiservice"
 	"go-invoice-service/common/protocol/proto/types"
 	"storage-service/internal/dto"
 )

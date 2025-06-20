@@ -1,12 +1,13 @@
 package dto
 
 import (
+	"github.com/google/uuid"
 	"time"
 )
 
 type Invoice struct {
-	ID         string
-	CustomerID string
+	ID         uuid.UUID
+	CustomerID uuid.UUID
 	Amount     int64
 	Currency   string
 	DueDate    time.Time

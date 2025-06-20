@@ -1,6 +1,7 @@
 package client
 
 import (
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"time"
 )
@@ -14,8 +15,8 @@ const (
 )
 
 type Invoice struct {
-	ID         string          `json:"id"`
-	CustomerID string          `json:"customer_id"`
+	ID         uuid.UUID       `json:"id"`
+	CustomerID uuid.UUID       `json:"customer_id"`
 	Amount     decimal.Decimal `json:"amount"`
 	Currency   string          `json:"currency"`
 	DueDate    time.Time       `json:"due_date"`

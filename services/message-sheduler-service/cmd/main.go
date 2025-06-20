@@ -10,6 +10,7 @@ import (
 	"log"
 	"message-sheduler-service/cmd/config"
 	"message-sheduler-service/internal/controllers"
+	"message-sheduler-service/internal/kafka"
 	"message-sheduler-service/internal/services"
 	"os/signal"
 	"syscall"
@@ -50,7 +51,7 @@ func main() {
 
 	outboxDispatcher := controllers.NewOutboxDispatcher(cfg.OutboxDispatcherConfig, storageService, kafkaProducer)
 
-	if err := run(rootCtx, outboxDispatcher, logger); err != nil {
+	if err := run(rootCtx, cfg, outboxDispatcher, logger); err != nil {
 		logger.ErrorCtx(rootCtx, "Service shutdown with error", zap.Error(err))
 	} else {
 		logger.InfoCtx(rootCtx, "Service shutdown gracefully")
@@ -59,9 +60,15 @@ func main() {
 
 func run(
 	rootCtx context.Context,
+	cfg *config.Config,
 	outboxDispatcher *controllers.OutboxDispatcher,
 	logger *logging.ZapLogger,
 ) error {
+	err := kafka.Setup(rootCtx, cfg.KafkaProducerConfig.ServerAddress, logger)
+	if err != nil {
+		return fmt.Errorf("failed to setup kafka topics: %w", err)
+	}
+
 	g, ctx := errgroup.WithContext(rootCtx)
 
 	g.Go(func() error {

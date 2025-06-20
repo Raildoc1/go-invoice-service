@@ -1,7 +1,7 @@
 package postgres
 
 import (
-	"context"
+	"database/sql"
 	"embed"
 	"errors"
 	"fmt"
@@ -9,19 +9,22 @@ import (
 
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
-	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-func Create(connectionString string) (*pgxpool.Pool, error) {
-	if err := runMigrations(connectionString); err != nil {
+type Config struct {
+	ConnectionString string
+}
+
+func Create(cfg Config) (*sql.DB, error) {
+	if err := runMigrations(cfg.ConnectionString); err != nil {
 		return nil, fmt.Errorf("failed to run DB migrations: %w", err)
 	}
-	pool, err := pgxpool.New(context.Background(), connectionString)
+	db, err := sql.Open("pgx", cfg.ConnectionString)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create a connection pool: %w", err)
+		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
-	return pool, nil
+	return db, nil
 }
 
 //go:embed migrations/*.sql
