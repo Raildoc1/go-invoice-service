@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"go-invoice-service/api-service/cmd/config"
@@ -23,6 +24,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	cfgJSON, err := json.MarshalIndent(cfg, "", "   ")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Config:", string(cfgJSON))
 
 	logger, err := logging.NewZapLogger(zapcore.DebugLevel)
 	if err != nil {

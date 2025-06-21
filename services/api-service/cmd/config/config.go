@@ -15,11 +15,14 @@ const (
 	httpAddressEnv     = "HTTP_ADDRESS"
 	storageAddressFlag = "storage-address"
 	storageAddressEnv  = "STORAGE_ADDRESS"
+	jwtPrivateKeyFlag  = "jwt-private-key"
+	jwtPrivateKeyEnv   = "JWT_PRIVATE_KEY"
 )
 
 const (
 	defaultHTTPAddress     = "localhost:8080"
-	defaultStorageAddress  = "localhost:5000"
+	defaultStorageAddress  = "localhost:9090"
+	defaultJWTPrivateKey   = "private-key"
 	defaultShutdownTimeout = 5 * time.Second
 )
 
@@ -36,6 +39,7 @@ func Load() (*Config, error) {
 
 	httpAddress := defaultHTTPAddress
 	storageAddress := defaultStorageAddress
+	jwtPrivateKey := defaultJWTPrivateKey
 
 	// Flags Definition.
 
@@ -44,6 +48,9 @@ func Load() (*Config, error) {
 
 	storageAddressFlagVal := flagtypes.NewString()
 	flag.Var(storageAddressFlagVal, storageAddressFlag, "Storage server address")
+
+	jwtPrivateKeyFlagVal := flagtypes.NewString()
+	flag.Var(jwtPrivateKeyFlagVal, jwtPrivateKeyFlag, "JWT private key")
 
 	flag.Parse()
 
@@ -57,6 +64,10 @@ func Load() (*Config, error) {
 		storageAddress = val
 	}
 
+	if val, ok := jwtPrivateKeyFlagVal.Value(); ok {
+		jwtPrivateKey = val
+	}
+
 	// Environment Variables.
 
 	if valStr, ok := os.LookupEnv(httpAddressEnv); ok {
@@ -67,10 +78,14 @@ func Load() (*Config, error) {
 		storageAddress = valStr
 	}
 
+	if valStr, ok := os.LookupEnv(jwtPrivateKeyEnv); ok {
+		jwtPrivateKey = valStr
+	}
+
 	return &Config{
 		JWTConfig: jwtfactory.Config{
 			Algorithm:      "HS256",
-			Secret:         "secret",
+			Secret:         jwtPrivateKey,
 			ExpirationTime: time.Hour,
 		},
 		StorageConfig: services.StorageConfig{

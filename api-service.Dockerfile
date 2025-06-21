@@ -28,5 +28,11 @@ WORKDIR /
 
 COPY --from=build-stage /go-invoice-service/services/api-service/server ./server
 
+ENV PORT_TO_LISTEN=8080
+ENV HTTP_ADDRESS=":${PORT_TO_LISTEN}"
+ENV STORAGE_ADDRESS="localhost:9090"
+ENV JWT_PRIVATE_KEY="secret"
+
 ENTRYPOINT ["./server"]
 
+EXPOSE ${PORT_TO_LISTEN}
