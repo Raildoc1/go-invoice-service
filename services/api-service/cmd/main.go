@@ -46,7 +46,7 @@ func main() {
 	)
 	defer cancelCtx()
 
-	storageService, err := services.NewStorage(cfg.StorageConfig)
+	storageService, err := services.NewStorage(cfg.StorageConfig, logger)
 	if err != nil {
 		logger.ErrorCtx(rootCtx, "Failed to create storage service", zap.Error(err))
 	}

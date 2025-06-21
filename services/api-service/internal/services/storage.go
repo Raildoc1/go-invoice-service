@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"go-invoice-service/api-service/internal/dto"
+	"go-invoice-service/common/pkg/logging"
 	pb "go-invoice-service/common/protocol/proto/apiservice"
 	"go-invoice-service/common/protocol/proto/types"
 	"google.golang.org/grpc"
@@ -20,9 +21,10 @@ type StorageConfig struct {
 type Storage struct {
 	conn          *grpc.ClientConn
 	storageClient pb.InvoiceStorageClient
+	logger        *logging.ZapLogger
 }
 
-func NewStorage(cfg StorageConfig) (*Storage, error) {
+func NewStorage(cfg StorageConfig, logger *logging.ZapLogger) (*Storage, error) {
 	options := grpc.WithTransportCredentials(insecure.NewCredentials())
 	conn, err := grpc.NewClient(cfg.ServerAddress, options)
 	if err != nil {
@@ -32,6 +34,7 @@ func NewStorage(cfg StorageConfig) (*Storage, error) {
 	return &Storage{
 		conn:          conn,
 		storageClient: storageClient,
+		logger:        logger,
 	}, nil
 }
 
@@ -51,6 +54,7 @@ func (s *Storage) Upload(ctx context.Context, invoice dto.Invoice) error {
 	if err != nil {
 		return fmt.Errorf("failed to upload invoice: %w", err)
 	}
+	s.logger.InfoCtx(ctx, fmt.Sprintf("Invoice %s uploaded successfully", invoice.ID))
 	return nil
 }
 

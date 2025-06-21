@@ -23,7 +23,7 @@ func (m *Manager) Do(ctx context.Context, f func(ctx context.Context, tx *sql.Tx
 	}
 	defer tx.Rollback()
 
-	return f(ctx, tx)
+	return doInternal(ctx, tx, f)
 }
 
 func (m *Manager) DoOpts(
@@ -37,5 +37,19 @@ func (m *Manager) DoOpts(
 	}
 	defer tx.Rollback()
 
-	return f(ctx, tx)
+	return doInternal(ctx, tx, f)
+}
+
+func doInternal(ctx context.Context, tx *sql.Tx, f func(ctx context.Context, tx *sql.Tx) error) error {
+	err := f(ctx, tx)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
 }
