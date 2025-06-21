@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"go-invoice-service/common/pkg/chutils"
 	"message-sheduler-service/internal/dto"
 	"time"
@@ -81,12 +82,12 @@ func (d *OutboxDispatcher) messagesSender(ctx context.Context, in <-chan dto.Out
 			}
 			err := d.kafkaProducer.SendMessage(ctx, msg.Topic, msg.Payload)
 			if err != nil {
-				errCh <- err
+				errCh <- fmt.Errorf("failed to send message to kafka: %w", err)
 				continue
 			}
 			err = d.storageService.DeleteOutboxMessage(ctx, msg.ID)
 			if err != nil {
-				errCh <- err
+				errCh <- fmt.Errorf("failed to delete outbox message: %w", err)
 				continue
 			}
 		}

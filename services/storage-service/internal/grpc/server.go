@@ -14,6 +14,8 @@ type InvoiceService interface {
 	AddNew(ctx context.Context, invoice dto.Invoice) error
 }
 
+type OutboxService interface{}
+
 type Config struct {
 	Port uint16
 }
