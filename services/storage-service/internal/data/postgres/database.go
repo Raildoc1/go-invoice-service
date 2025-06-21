@@ -31,7 +31,7 @@ func Create(cfg Config) (*sql.DB, error) {
 var migrationsDir embed.FS
 
 func runMigrations(dsn string) error {
-	d, err := iofs.New(migrationsDir, "migrations")
+	d, err := iofs.New(migrationsDir, "schema")
 	if err != nil {
 		return fmt.Errorf("failed to return an iofs driver: %w", err)
 	}

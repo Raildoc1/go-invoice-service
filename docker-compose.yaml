@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: 'postgres'
+    volumes:
+      - go-invoice-postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: go-invoice-service-db
+      POSTGRES_USER: go-invoice-service-user
+      POSTGRES_PASSWORD: 123
+    ports:
+      - "5432:5432"
+  storage-service:
+    build:
+      context: ./
+      dockerfile: storage-service.Dockerfile
+    environment:
+      POSTGRES_CONNECTION_STRING: postgres://go-invoice-service-user:123@postgres:5432/go-invoice-service-db?sslmode=disable
+      GRPC_PORT: 9090
+    depends_on:
+      - postgres
+
+volumes:
+  go-invoice-postgres-data:
