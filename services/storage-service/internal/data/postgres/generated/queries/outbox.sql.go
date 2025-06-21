@@ -25,7 +25,7 @@ func (q *Queries) DeleteMessage(ctx context.Context, id int64) error {
 
 const getMessages = `-- name: GetMessages :many
 select id, payload, topic from outbox
-where next_send_at>=$1
+where next_send_at<=$1
 limit $2
 for update
 `

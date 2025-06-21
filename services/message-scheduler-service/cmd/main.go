@@ -56,7 +56,12 @@ func main() {
 	}
 	defer storageService.Close()
 
-	outboxDispatcher := controllers.NewOutboxDispatcher(cfg.OutboxDispatcherConfig, storageService, kafkaProducer)
+	outboxDispatcher := controllers.NewOutboxDispatcher(
+		cfg.OutboxDispatcherConfig,
+		storageService,
+		kafkaProducer,
+		logger,
+	)
 
 	if err := run(rootCtx, cfg, outboxDispatcher, logger); err != nil {
 		logger.ErrorCtx(rootCtx, "Service shutdown with error", zap.Error(err))

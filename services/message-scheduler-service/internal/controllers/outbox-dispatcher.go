@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"go-invoice-service/common/pkg/chutils"
+	"go-invoice-service/common/pkg/logging"
 	"message-sheduler-service/internal/dto"
 	"time"
 )
@@ -21,6 +22,7 @@ type OutboxDispatcher struct {
 	cfg            OutboxDispatcherConfig
 	storageService StorageService
 	kafkaProducer  KafkaProducer
+	logger         *logging.ZapLogger
 }
 
 type OutboxDispatcherConfig struct {
@@ -33,11 +35,13 @@ func NewOutboxDispatcher(
 	cfg OutboxDispatcherConfig,
 	storageService StorageService,
 	kafkaProducer KafkaProducer,
+	logger *logging.ZapLogger,
 ) *OutboxDispatcher {
 	return &OutboxDispatcher{
 		cfg:            cfg,
 		storageService: storageService,
 		kafkaProducer:  kafkaProducer,
+		logger:         logger,
 	}
 }
 
@@ -80,16 +84,20 @@ func (d *OutboxDispatcher) messagesSender(ctx context.Context, in <-chan dto.Out
 			if ctx.Err() != nil {
 				return
 			}
+
 			err := d.kafkaProducer.SendMessage(ctx, msg.Topic, msg.Payload)
 			if err != nil {
 				errCh <- fmt.Errorf("failed to send message to kafka: %w", err)
 				continue
 			}
+			d.logger.InfoCtx(ctx, fmt.Sprintf("message %v sent to topic %s", msg.ID, msg.Topic))
+
 			err = d.storageService.DeleteOutboxMessage(ctx, msg.ID)
 			if err != nil {
 				errCh <- fmt.Errorf("failed to delete outbox message: %w", err)
 				continue
 			}
+			d.logger.InfoCtx(ctx, fmt.Sprintf("message %v removed from outbox", msg.ID))
 		}
 	}(ctx)
 
