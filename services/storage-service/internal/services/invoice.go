@@ -14,20 +14,20 @@ type InvoiceRepository interface {
 	Add(ctx context.Context, tx *sql.Tx, invoice dto.Invoice, status dto.InvoiceStatus) error
 }
 
-type OutboxRepository interface {
+type OutboxScheduleRepository interface {
 	ScheduleMessage(ctx context.Context, tx *sql.Tx, message dto.OutboxMessageStencil, sendAt time.Time) error
 }
 
 type Invoice struct {
 	tm         TransactionsManager
 	invoiceRep InvoiceRepository
-	outboxRep  OutboxRepository
+	outboxRep  OutboxScheduleRepository
 }
 
 func NewInvoice(
 	tm TransactionsManager,
 	invoiceRep InvoiceRepository,
-	outboxRep OutboxRepository,
+	outboxRep OutboxScheduleRepository,
 ) *Invoice {
 	return &Invoice{
 		tm:         tm,

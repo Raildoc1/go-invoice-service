@@ -57,7 +57,7 @@ func main() {
 	outboxRepository := repositories.NewOutbox(db)
 
 	invoiceService := services.NewInvoice(tm, invoiceRepository, outboxRepository)
-	outboxService := services.NewOutbox(tm)
+	outboxService := services.NewOutbox(tm, outboxRepository, logger)
 
 	grpcServer := grpc.NewServer(cfg.GRPCConfig, invoiceService, outboxService)
 

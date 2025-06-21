@@ -130,5 +130,15 @@ services:
       - kafka-broker-2
       - kafka-broker-3
 
+  api-service:
+    build:
+      context: ./
+      dockerfile: api-service.Dockerfile
+    environment:
+      PORT_TO_LISTEN: 8080
+      STORAGE_ADDRESS: storage-service:9090
+    depends_on:
+      - storage-service
+
 volumes:
   go-invoice-postgres-data:

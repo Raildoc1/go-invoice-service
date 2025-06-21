@@ -7,7 +7,6 @@ package queries
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"time"
 
@@ -24,8 +23,8 @@ func (q *Queries) DeleteMessage(ctx context.Context, id int64) error {
 	return err
 }
 
-const getMessages = `-- name: GetMessages :execresult
-select (id, payload, topic) from outbox
+const getMessages = `-- name: GetMessages :many
+select id, payload, topic from outbox
 where next_send_at>=$1
 limit $2
 for update
@@ -36,8 +35,33 @@ type GetMessagesParams struct {
 	Limit      int32
 }
 
-func (q *Queries) GetMessages(ctx context.Context, arg GetMessagesParams) (sql.Result, error) {
-	return q.db.ExecContext(ctx, getMessages, arg.NextSendAt, arg.Limit)
+type GetMessagesRow struct {
+	ID      int64
+	Payload json.RawMessage
+	Topic   string
+}
+
+func (q *Queries) GetMessages(ctx context.Context, arg GetMessagesParams) ([]GetMessagesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getMessages, arg.NextSendAt, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetMessagesRow
+	for rows.Next() {
+		var i GetMessagesRow
+		if err := rows.Scan(&i.ID, &i.Payload, &i.Topic); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const increaseNextSendAt = `-- name: IncreaseNextSendAt :exec

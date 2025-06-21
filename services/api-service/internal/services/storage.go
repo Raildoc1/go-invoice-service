@@ -47,12 +47,9 @@ func (s *Storage) Upload(ctx context.Context, invoice dto.Invoice) error {
 	req := &pb.UploadRequest{
 		Invoice: convertInvoice(invoice),
 	}
-	resp, err := s.storageClient.Upload(ctx, req)
+	_, err := s.storageClient.Upload(ctx, req)
 	if err != nil {
 		return fmt.Errorf("failed to upload invoice: %w", err)
-	}
-	if resp.Error != nil {
-		return fmt.Errorf("failed to upload invoice: %s", *resp.Error)
 	}
 	return nil
 }

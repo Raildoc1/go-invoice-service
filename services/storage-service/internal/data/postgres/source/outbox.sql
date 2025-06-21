@@ -2,8 +2,8 @@
 insert into outbox (payload, topic, next_send_at)
 values ($1, $2, $3);
 
--- name: GetMessages :execresult
-select (id, payload, topic) from outbox
+-- name: GetMessages :many
+select id, payload, topic from outbox
 where next_send_at>=$1
 limit $2
 for update;

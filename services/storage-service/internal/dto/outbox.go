@@ -8,6 +8,6 @@ type OutboxMessageStencil struct {
 }
 
 type OutboxMessage struct {
-	ID int64
-	OutboxMessageStencil
+	ID      int64
+	Stencil OutboxMessageStencil
 }

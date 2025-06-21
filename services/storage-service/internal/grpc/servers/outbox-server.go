@@ -39,6 +39,14 @@ func (o *OutboxServer) Get(ctx context.Context, request *pb.GetMessagesRequest) 
 	return response, nil
 }
 
+func (o *OutboxServer) Delete(ctx context.Context, request *pb.DeleteMessageRequest) (*emptypb.Empty, error) {
+	err := o.outboxService.Delete(ctx, request.GetId())
+	if err != nil {
+		return nil, fmt.Errorf("failed to delete outbox message: %w", err)
+	}
+	return &emptypb.Empty{}, nil
+}
+
 func convertMessages(messages []dto.OutboxMessage) []*types.OutboxMessage {
 	res := make([]*types.OutboxMessage, len(messages))
 
@@ -50,15 +58,10 @@ func convertMessages(messages []dto.OutboxMessage) []*types.OutboxMessage {
 }
 
 func convertMessage(message dto.OutboxMessage) *types.OutboxMessage {
-	topicString := string(message.Topic)
+	topicString := string(message.Stencil.Topic)
 	return &types.OutboxMessage{
 		Id:      &message.ID,
 		Topic:   &topicString,
-		Payload: message.Payload,
+		Payload: message.Stencil.Payload,
 	}
-}
-
-func (o *OutboxServer) Delete(ctx context.Context, request *pb.DeleteMessageRequest) (*emptypb.Empty, error) {
-	//TODO implement me
-	panic("implement me")
 }
