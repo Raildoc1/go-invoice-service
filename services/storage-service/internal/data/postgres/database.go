@@ -27,7 +27,7 @@ func Create(cfg Config) (*sql.DB, error) {
 	return db, nil
 }
 
-//go:embed migrations/*.sql
+//go:embed schema/*.sql
 var migrationsDir embed.FS
 
 func runMigrations(dsn string) error {
