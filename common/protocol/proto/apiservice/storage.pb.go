@@ -10,6 +10,7 @@ import (
 	types "go-invoice-service/common/protocol/proto/types"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -66,61 +67,15 @@ func (x *UploadRequest) GetInvoice() *types.Invoice {
 	return nil
 }
 
-type UploadResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Error         *string                `protobuf:"bytes,1,opt,name=error" json:"error,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *UploadResponse) Reset() {
-	*x = UploadResponse{}
-	mi := &file_apiservice_storage_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *UploadResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*UploadResponse) ProtoMessage() {}
-
-func (x *UploadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_apiservice_storage_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use UploadResponse.ProtoReflect.Descriptor instead.
-func (*UploadResponse) Descriptor() ([]byte, []int) {
-	return file_apiservice_storage_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *UploadResponse) GetError() string {
-	if x != nil && x.Error != nil {
-		return *x.Error
-	}
-	return ""
-}
-
 var File_apiservice_storage_proto protoreflect.FileDescriptor
 
 const file_apiservice_storage_proto_rawDesc = "" +
 	"\n" +
-	"\x18apiservice/storage.proto\x12\x1cprotocol.api_service.storage\x1a\x13types/invoice.proto\"B\n" +
+	"\x18apiservice/storage.proto\x12\x1cprotocol.api_service.storage\x1a\x1bgoogle/protobuf/empty.proto\x1a\x13types/invoice.proto\"B\n" +
 	"\rUploadRequest\x121\n" +
-	"\ainvoice\x18\x01 \x01(\v2\x17.protocol.types.InvoiceR\ainvoice\"&\n" +
-	"\x0eUploadResponse\x12\x14\n" +
-	"\x05error\x18\x01 \x01(\tR\x05error2u\n" +
-	"\x0eInvoiceStorage\x12c\n" +
-	"\x06Upload\x12+.protocol.api_service.storage.UploadRequest\x1a,.protocol.api_service.storage.UploadResponseB5Z3go-invoice-service/common/protocol/proto/apiserviceb\beditionsp\xe8\a"
+	"\ainvoice\x18\x01 \x01(\v2\x17.protocol.types.InvoiceR\ainvoice2_\n" +
+	"\x0eInvoiceStorage\x12M\n" +
+	"\x06Upload\x12+.protocol.api_service.storage.UploadRequest\x1a\x16.google.protobuf.EmptyB5Z3go-invoice-service/common/protocol/proto/apiserviceb\beditionsp\xe8\a"
 
 var (
 	file_apiservice_storage_proto_rawDescOnce sync.Once
@@ -134,16 +89,16 @@ func file_apiservice_storage_proto_rawDescGZIP() []byte {
 	return file_apiservice_storage_proto_rawDescData
 }
 
-var file_apiservice_storage_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_apiservice_storage_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_apiservice_storage_proto_goTypes = []any{
-	(*UploadRequest)(nil),  // 0: protocol.api_service.storage.UploadRequest
-	(*UploadResponse)(nil), // 1: protocol.api_service.storage.UploadResponse
-	(*types.Invoice)(nil),  // 2: protocol.types.Invoice
+	(*UploadRequest)(nil), // 0: protocol.api_service.storage.UploadRequest
+	(*types.Invoice)(nil), // 1: protocol.types.Invoice
+	(*emptypb.Empty)(nil), // 2: google.protobuf.Empty
 }
 var file_apiservice_storage_proto_depIdxs = []int32{
-	2, // 0: protocol.api_service.storage.UploadRequest.invoice:type_name -> protocol.types.Invoice
+	1, // 0: protocol.api_service.storage.UploadRequest.invoice:type_name -> protocol.types.Invoice
 	0, // 1: protocol.api_service.storage.InvoiceStorage.Upload:input_type -> protocol.api_service.storage.UploadRequest
-	1, // 2: protocol.api_service.storage.InvoiceStorage.Upload:output_type -> protocol.api_service.storage.UploadResponse
+	2, // 2: protocol.api_service.storage.InvoiceStorage.Upload:output_type -> google.protobuf.Empty
 	2, // [2:3] is the sub-list for method output_type
 	1, // [1:2] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
@@ -162,7 +117,7 @@ func file_apiservice_storage_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_apiservice_storage_proto_rawDesc), len(file_apiservice_storage_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

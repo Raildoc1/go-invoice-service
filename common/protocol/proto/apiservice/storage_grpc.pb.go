@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -26,7 +27,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type InvoiceStorageClient interface {
-	Upload(ctx context.Context, in *UploadRequest, opts ...grpc.CallOption) (*UploadResponse, error)
+	Upload(ctx context.Context, in *UploadRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type invoiceStorageClient struct {
@@ -37,9 +38,9 @@ func NewInvoiceStorageClient(cc grpc.ClientConnInterface) InvoiceStorageClient {
 	return &invoiceStorageClient{cc}
 }
 
-func (c *invoiceStorageClient) Upload(ctx context.Context, in *UploadRequest, opts ...grpc.CallOption) (*UploadResponse, error) {
+func (c *invoiceStorageClient) Upload(ctx context.Context, in *UploadRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UploadResponse)
+	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, InvoiceStorage_Upload_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -51,7 +52,7 @@ func (c *invoiceStorageClient) Upload(ctx context.Context, in *UploadRequest, op
 // All implementations must embed UnimplementedInvoiceStorageServer
 // for forward compatibility.
 type InvoiceStorageServer interface {
-	Upload(context.Context, *UploadRequest) (*UploadResponse, error)
+	Upload(context.Context, *UploadRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedInvoiceStorageServer()
 }
 
@@ -62,7 +63,7 @@ type InvoiceStorageServer interface {
 // pointer dereference when methods are called.
 type UnimplementedInvoiceStorageServer struct{}
 
-func (UnimplementedInvoiceStorageServer) Upload(context.Context, *UploadRequest) (*UploadResponse, error) {
+func (UnimplementedInvoiceStorageServer) Upload(context.Context, *UploadRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Upload not implemented")
 }
 func (UnimplementedInvoiceStorageServer) mustEmbedUnimplementedInvoiceStorageServer() {}

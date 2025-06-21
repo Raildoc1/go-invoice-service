@@ -57,8 +57,9 @@ func main() {
 	outboxRepository := repositories.NewOutbox(db)
 
 	invoiceService := services.NewInvoice(tm, invoiceRepository, outboxRepository)
+	outboxService := services.NewOutbox(tm)
 
-	grpcServer := grpc.NewServer(cfg.GRPCConfig, invoiceService)
+	grpcServer := grpc.NewServer(cfg.GRPCConfig, invoiceService, outboxService)
 
 	if err := run(rootCtx, grpcServer, logger); err != nil {
 		logger.ErrorCtx(rootCtx, "Service shutdown with error", zap.Error(err))

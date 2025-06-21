@@ -19,7 +19,7 @@ func NewOutbox(dbtx queries.DBTX) *Outbox {
 	}
 }
 
-func (r *Outbox) ScheduleMessage(ctx context.Context, tx *sql.Tx, message dto.OutboxMessage, sendAt time.Time) error {
+func (r *Outbox) ScheduleMessage(ctx context.Context, tx *sql.Tx, message dto.OutboxMessageStencil, sendAt time.Time) error {
 	qs := r.qs.WithTx(tx)
 
 	err := qs.ScheduleMessage(ctx, convertOutboxMessage(message, sendAt))
@@ -30,7 +30,7 @@ func (r *Outbox) ScheduleMessage(ctx context.Context, tx *sql.Tx, message dto.Ou
 	return nil
 }
 
-func convertOutboxMessage(message dto.OutboxMessage, sendAt time.Time) queries.ScheduleMessageParams {
+func convertOutboxMessage(message dto.OutboxMessageStencil, sendAt time.Time) queries.ScheduleMessageParams {
 	return queries.ScheduleMessageParams{
 		Payload:    message.Payload,
 		Topic:      string(message.Topic),

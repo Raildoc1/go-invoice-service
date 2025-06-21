@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -28,7 +29,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type OutboxStorageClient interface {
 	Get(ctx context.Context, in *GetMessagesRequest, opts ...grpc.CallOption) (*GetMessagesResponse, error)
-	Delete(ctx context.Context, in *DeleteMessageRequest, opts ...grpc.CallOption) (*DeleteMessageResponse, error)
+	Delete(ctx context.Context, in *DeleteMessageRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type outboxStorageClient struct {
@@ -49,9 +50,9 @@ func (c *outboxStorageClient) Get(ctx context.Context, in *GetMessagesRequest, o
 	return out, nil
 }
 
-func (c *outboxStorageClient) Delete(ctx context.Context, in *DeleteMessageRequest, opts ...grpc.CallOption) (*DeleteMessageResponse, error) {
+func (c *outboxStorageClient) Delete(ctx context.Context, in *DeleteMessageRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteMessageResponse)
+	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, OutboxStorage_Delete_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -64,7 +65,7 @@ func (c *outboxStorageClient) Delete(ctx context.Context, in *DeleteMessageReque
 // for forward compatibility.
 type OutboxStorageServer interface {
 	Get(context.Context, *GetMessagesRequest) (*GetMessagesResponse, error)
-	Delete(context.Context, *DeleteMessageRequest) (*DeleteMessageResponse, error)
+	Delete(context.Context, *DeleteMessageRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedOutboxStorageServer()
 }
 
@@ -78,7 +79,7 @@ type UnimplementedOutboxStorageServer struct{}
 func (UnimplementedOutboxStorageServer) Get(context.Context, *GetMessagesRequest) (*GetMessagesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
 }
-func (UnimplementedOutboxStorageServer) Delete(context.Context, *DeleteMessageRequest) (*DeleteMessageResponse, error) {
+func (UnimplementedOutboxStorageServer) Delete(context.Context, *DeleteMessageRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
 func (UnimplementedOutboxStorageServer) mustEmbedUnimplementedOutboxStorageServer() {}

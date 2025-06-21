@@ -1,20 +1,21 @@
 package grpc
 
 import (
-	"context"
 	"fmt"
-	pb "go-invoice-service/common/protocol/proto/apiservice"
+	apiservicepb "go-invoice-service/common/protocol/proto/apiservice"
+	messageschedulerpb "go-invoice-service/common/protocol/proto/messagescheduler"
 	"google.golang.org/grpc"
 	"net"
-	"storage-service/internal/dto"
 	"storage-service/internal/grpc/servers"
 )
 
 type InvoiceService interface {
-	AddNew(ctx context.Context, invoice dto.Invoice) error
+	servers.InvoiceService
 }
 
-type OutboxService interface{}
+type OutboxService interface {
+	servers.OutboxService
+}
 
 type Config struct {
 	Port uint16
@@ -23,12 +24,14 @@ type Config struct {
 type Server struct {
 	cfg            Config
 	invoiceService InvoiceService
+	outboxService  OutboxService
 	server         *grpc.Server
 }
 
-func NewServer(cfg Config, invoiceService InvoiceService) *Server {
+func NewServer(cfg Config, invoiceService InvoiceService, outboxService OutboxService) *Server {
 	return &Server{
 		invoiceService: invoiceService,
+		outboxService:  outboxService,
 		server:         grpc.NewServer(),
 		cfg:            cfg,
 	}
@@ -41,8 +44,10 @@ func (s *Server) Run() error {
 	}
 
 	invoiceService := servers.NewInvoiceServer(s.invoiceService)
+	outboxService := servers.NewOutboxServer(s.outboxService)
 
-	pb.RegisterInvoiceStorageServer(s.server, invoiceService)
+	apiservicepb.RegisterInvoiceStorageServer(s.server, invoiceService)
+	messageschedulerpb.RegisterOutboxStorageServer(s.server, outboxService)
 
 	if err := s.server.Serve(listen); err != nil {
 		return fmt.Errorf("failed to serve: %w", err)

@@ -24,14 +24,15 @@ func Generator[T any](
 			ctx,
 			func(ctx context.Context) {
 				nextRequest = time.Now().Add(minInterval)
-				val, err := tick(ctx, int32(len(out)))
-				if err != nil {
+
+				if val, err := tick(ctx, int32(len(out))); err != nil {
 					errCh <- err
-					return
+				} else {
+					for _, msg := range val {
+						out <- msg
+					}
 				}
-				for _, msg := range val {
-					out <- msg
-				}
+
 				timeToWait := nextRequest.Sub(time.Now())
 				if timeToWait > 0 {
 					time.Sleep(timeToWait)

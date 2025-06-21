@@ -10,16 +10,12 @@ import (
 	"time"
 )
 
-type TransactionsManager interface {
-	Do(ctx context.Context, f func(ctx context.Context, tx *sql.Tx) error) error
-}
-
 type InvoiceRepository interface {
 	Add(ctx context.Context, tx *sql.Tx, invoice dto.Invoice, status dto.InvoiceStatus) error
 }
 
 type OutboxRepository interface {
-	ScheduleMessage(ctx context.Context, tx *sql.Tx, message dto.OutboxMessage, sendAt time.Time) error
+	ScheduleMessage(ctx context.Context, tx *sql.Tx, message dto.OutboxMessageStencil, sendAt time.Time) error
 }
 
 type Invoice struct {
@@ -54,7 +50,7 @@ func (s *Invoice) AddNew(ctx context.Context, invoice dto.Invoice) error {
 		if err != nil {
 			return fmt.Errorf("marshalling new invoice kafka message failed: %w", err)
 		}
-		msg := dto.OutboxMessage{
+		msg := dto.OutboxMessageStencil{
 			Topic:   kafka.TopicNewInvoice,
 			Payload: payloadJSON,
 		}

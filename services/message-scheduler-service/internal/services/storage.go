@@ -57,9 +57,6 @@ func (s *Storage) GetOutboxMessages(
 	if err != nil {
 		return nil, fmt.Errorf("failed to get outbox messages: %w", err)
 	}
-	if resp.Error != nil {
-		return nil, fmt.Errorf("failed to get outbox messages: %s", *resp.Error)
-	}
 	msgsCount := len(resp.OutboxMessages)
 	res := make([]dto.OutboxMessage, msgsCount)
 	for i, msg := range resp.OutboxMessages {
@@ -76,12 +73,9 @@ func (s *Storage) DeleteOutboxMessage(ctx context.Context, id int64) error {
 	req := &pb.DeleteMessageRequest{
 		Id: &id,
 	}
-	resp, err := s.outboxStorageClient.Delete(ctx, req)
+	_, err := s.outboxStorageClient.Delete(ctx, req)
 	if err != nil {
 		return fmt.Errorf("failed to delete outbox message: %w", err)
-	}
-	if resp.Error != nil {
-		return fmt.Errorf("failed to delete outbox message: %s", *resp.Error)
 	}
 	return nil
 }

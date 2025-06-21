@@ -1,6 +1,7 @@
 edition = "2023";
 
 import "google/protobuf/duration.proto";
+import "google/protobuf/empty.proto";
 import "types/outbox-message.proto";
 
 package protocol.messages_scheduler.storage;
@@ -14,18 +15,13 @@ message GetMessagesRequest {
 
 message GetMessagesResponse {
   repeated types.OutboxMessage outboxMessages = 1;
-  string error = 2;
 }
 
 message DeleteMessageRequest {
   int64 id = 1;
 }
 
-message DeleteMessageResponse {
-  string error = 1;
-}
-
 service OutboxStorage {
   rpc Get (GetMessagesRequest) returns (GetMessagesResponse);
-  rpc Delete (DeleteMessageRequest) returns (DeleteMessageResponse);
+  rpc Delete (DeleteMessageRequest) returns (google.protobuf.Empty);
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	pb "go-invoice-service/common/protocol/proto/apiservice"
 	"go-invoice-service/common/protocol/proto/types"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"storage-service/internal/dto"
 )
 
@@ -26,20 +27,18 @@ func NewInvoiceServer(service InvoiceService) *InvoiceServer {
 	}
 }
 
-func (s *InvoiceServer) Upload(ctx context.Context, request *pb.UploadRequest) (*pb.UploadResponse, error) {
+func (s *InvoiceServer) Upload(ctx context.Context, request *pb.UploadRequest) (*emptypb.Empty, error) {
 	invoice, err := convertInvoice(request)
 	if err != nil {
-		errMsg := fmt.Sprintf("failed to convert invoice %v", err)
-		return &pb.UploadResponse{Error: &errMsg}, nil
+		return nil, fmt.Errorf("failed to convert invoice %w", err)
 	}
 
 	err = s.service.AddNew(ctx, invoice)
 	if err != nil {
-		errMsg := fmt.Sprintf("failed to add new invoice %v", err)
-		return &pb.UploadResponse{Error: &errMsg}, nil
+		return nil, fmt.Errorf("failed to add new invoice %w", err)
 	}
 
-	return &pb.UploadResponse{}, nil
+	return nil, nil
 }
 
 func convertInvoice(request *pb.UploadRequest) (dto.Invoice, error) {
