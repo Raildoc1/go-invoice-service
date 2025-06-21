@@ -20,14 +20,14 @@ const (
 	workersCountFlag     = "workers-count"
 	workersCountEnv      = "WORKERS_COUNT"
 	retryIntervalFlag    = "retry-interval"
-	retryIntervalEnv     = "RETRY_INTERVAL"
+	retryIntervalEnv     = "RETRY_INTERVAL_MS"
 	dispatchIntervalFlag = "dispatch-interval"
-	dispatchIntervalEnv  = "DISPATCH_INTERVAL"
+	dispatchIntervalEnv  = "DISPATCH_INTERVAL_MS"
 )
 
 const (
 	defaultKafkaAddress     = "localhost:9092"
-	defaultStorageAddress   = "localhost:5000"
+	defaultStorageAddress   = "localhost:9090"
 	defaultWorkersCount     = 3
 	defaultRetryInterval    = 30 * time.Second
 	defaultDispatchInterval = 1 * time.Second

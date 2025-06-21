@@ -1,14 +1,14 @@
-package kafka
+package setup
 
 import (
 	"context"
 	"fmt"
-	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"go-invoice-service/common/pkg/logging"
 	common "go-invoice-service/common/protocol/kafka"
 )
 
-func Setup(ctx context.Context, address string, logger *logging.ZapLogger) error {
+func EnsureKafkaTopics(ctx context.Context, address string, logger *logging.ZapLogger) error {
 	for _, t := range common.Topics {
 		err := ensureTopic(
 			ctx,

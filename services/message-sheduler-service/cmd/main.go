@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"go-invoice-service/common/pkg/logging"
 	"go.uber.org/zap"
@@ -10,8 +11,8 @@ import (
 	"log"
 	"message-sheduler-service/cmd/config"
 	"message-sheduler-service/internal/controllers"
-	"message-sheduler-service/internal/kafka"
 	"message-sheduler-service/internal/services"
+	"message-sheduler-service/internal/setup"
 	"os/signal"
 	"syscall"
 )
@@ -21,6 +22,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	cfgJSON, err := json.MarshalIndent(cfg, "", "   ")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Config:", string(cfgJSON))
 
 	logger, err := logging.NewZapLogger(zapcore.DebugLevel)
 	if err != nil {
@@ -64,7 +71,7 @@ func run(
 	outboxDispatcher *controllers.OutboxDispatcher,
 	logger *logging.ZapLogger,
 ) error {
-	err := kafka.Setup(rootCtx, cfg.KafkaProducerConfig.ServerAddress, logger)
+	err := setup.EnsureKafkaTopics(rootCtx, cfg.KafkaProducerConfig.ServerAddress, logger)
 	if err != nil {
 		return fmt.Errorf("failed to setup kafka topics: %w", err)
 	}
