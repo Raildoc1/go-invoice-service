@@ -16,17 +16,17 @@ RUN go mod download
 
 # service mod
 WORKDIR /go-invoice-service/
-COPY ./services/message-sheduler-service/go.mod ./services/message-sheduler-service/go.sum ./services/message-sheduler-service/
-WORKDIR /go-invoice-service/services/message-sheduler-service/
+COPY ./services/message-scheduler-service/go.mod ./services/message-scheduler-service/go.sum ./services/message-scheduler-service/
+WORKDIR /go-invoice-service/services/message-scheduler-service/
 RUN go mod download
 
 # copy source code
 WORKDIR /go-invoice-service/
 COPY ./common/ ./common/
-COPY ./services/message-sheduler-service/ ./services/message-sheduler-service/
+COPY ./services/message-scheduler-service/ ./services/message-scheduler-service/
 
 # build
-WORKDIR /go-invoice-service/services/message-sheduler-service/
+WORKDIR /go-invoice-service/services/message-scheduler-service/
 RUN go mod tidy
 
 RUN CGO_ENABLED=1 \
@@ -38,7 +38,7 @@ FROM alpine:latest AS release-stage
 
 WORKDIR /
 
-COPY --from=build-stage /go-invoice-service/services/message-sheduler-service/server ./server
+COPY --from=build-stage /go-invoice-service/services/message-scheduler-service/server ./server
 
 ENV KAFKA_ADDRESS="localhost:9092"
 ENV STORAGE_ADDRESS="localhost:9090"
