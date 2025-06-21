@@ -7,9 +7,54 @@ package queries
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"time"
+
+	"github.com/lib/pq"
 )
+
+const deleteMessage = `-- name: DeleteMessage :exec
+delete from outbox
+where id = $1
+`
+
+func (q *Queries) DeleteMessage(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteMessage, id)
+	return err
+}
+
+const getMessages = `-- name: GetMessages :execresult
+select (id, payload, topic) from outbox
+where next_send_at>=$1
+limit $2
+for update
+`
+
+type GetMessagesParams struct {
+	NextSendAt time.Time
+	Limit      int32
+}
+
+func (q *Queries) GetMessages(ctx context.Context, arg GetMessagesParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, getMessages, arg.NextSendAt, arg.Limit)
+}
+
+const increaseNextSendAt = `-- name: IncreaseNextSendAt :exec
+update outbox
+set next_send_at = current_timestamp + ($1::bigint || ' seconds')::interval
+where id = ANY($2::bigint[])
+`
+
+type IncreaseNextSendAtParams struct {
+	TimeToAddSec int64
+	Ids          []int64
+}
+
+func (q *Queries) IncreaseNextSendAt(ctx context.Context, arg IncreaseNextSendAtParams) error {
+	_, err := q.db.ExecContext(ctx, increaseNextSendAt, arg.TimeToAddSec, pq.Array(arg.Ids))
+	return err
+}
 
 const scheduleMessage = `-- name: ScheduleMessage :exec
 insert into outbox (payload, topic, next_send_at)
