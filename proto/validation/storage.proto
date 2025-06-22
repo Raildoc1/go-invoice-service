@@ -1,0 +1,32 @@
+edition = "2023";
+
+import "google/protobuf/empty.proto";
+import "types/uuid.proto";
+import "types/invoice.proto";
+
+package protocol.validation.storage;
+
+option go_package = "go-invoice-service/common/protocol/proto/validation";
+
+message GetInvoiceRequest {
+  types.UUID id = 1;
+}
+
+message GetInvoiceResponse {
+  types.Invoice invoice = 1;
+  types.InvoiceStatus status = 2;
+}
+
+message SetApprovedRequest {
+  types.UUID id = 1;
+}
+
+message SetRejectedRequest {
+  types.UUID id = 1;
+}
+
+service InvoiceStorage {
+  rpc Get (GetInvoiceRequest) returns (GetInvoiceResponse);
+  rpc SetApproved (SetApprovedRequest) returns (google.protobuf.Empty);
+  rpc SetRejected (SetRejectedRequest) returns (google.protobuf.Empty);
+}

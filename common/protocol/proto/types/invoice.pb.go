@@ -22,6 +22,55 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type InvoiceStatus int32
+
+const (
+	InvoiceStatus_Pending  InvoiceStatus = 0
+	InvoiceStatus_Approved InvoiceStatus = 1
+	InvoiceStatus_Rejected InvoiceStatus = 2
+)
+
+// Enum value maps for InvoiceStatus.
+var (
+	InvoiceStatus_name = map[int32]string{
+		0: "Pending",
+		1: "Approved",
+		2: "Rejected",
+	}
+	InvoiceStatus_value = map[string]int32{
+		"Pending":  0,
+		"Approved": 1,
+		"Rejected": 2,
+	}
+)
+
+func (x InvoiceStatus) Enum() *InvoiceStatus {
+	p := new(InvoiceStatus)
+	*p = x
+	return p
+}
+
+func (x InvoiceStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (InvoiceStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_types_invoice_proto_enumTypes[0].Descriptor()
+}
+
+func (InvoiceStatus) Type() protoreflect.EnumType {
+	return &file_types_invoice_proto_enumTypes[0]
+}
+
+func (x InvoiceStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use InvoiceStatus.Descriptor instead.
+func (InvoiceStatus) EnumDescriptor() ([]byte, []int) {
+	return file_types_invoice_proto_rawDescGZIP(), []int{0}
+}
+
 type Item struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Description   *string                `protobuf:"bytes,1,opt,name=description" json:"description,omitempty"`
@@ -219,7 +268,11 @@ const file_types_invoice_proto_rawDesc = "" +
 	"\tcreatedAt\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x128\n" +
 	"\tupdatedAt\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12*\n" +
 	"\x05items\x18\b \x03(\v2\x14.protocol.types.ItemR\x05items\x12\x14\n" +
-	"\x05notes\x18\t \x01(\tR\x05notesB0Z.go-invoice-service/common/protocol/proto/typesb\beditionsp\xe8\a"
+	"\x05notes\x18\t \x01(\tR\x05notes*8\n" +
+	"\rInvoiceStatus\x12\v\n" +
+	"\aPending\x10\x00\x12\f\n" +
+	"\bApproved\x10\x01\x12\f\n" +
+	"\bRejected\x10\x02B0Z.go-invoice-service/common/protocol/proto/typesb\beditionsp\xe8\a"
 
 var (
 	file_types_invoice_proto_rawDescOnce sync.Once
@@ -233,20 +286,22 @@ func file_types_invoice_proto_rawDescGZIP() []byte {
 	return file_types_invoice_proto_rawDescData
 }
 
+var file_types_invoice_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_types_invoice_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_types_invoice_proto_goTypes = []any{
-	(*Item)(nil),                  // 0: protocol.types.Item
-	(*Invoice)(nil),               // 1: protocol.types.Invoice
-	(*UUID)(nil),                  // 2: protocol.types.UUID
-	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
+	(InvoiceStatus)(0),            // 0: protocol.types.InvoiceStatus
+	(*Item)(nil),                  // 1: protocol.types.Item
+	(*Invoice)(nil),               // 2: protocol.types.Invoice
+	(*UUID)(nil),                  // 3: protocol.types.UUID
+	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
 }
 var file_types_invoice_proto_depIdxs = []int32{
-	2, // 0: protocol.types.Invoice.id:type_name -> protocol.types.UUID
-	2, // 1: protocol.types.Invoice.customerId:type_name -> protocol.types.UUID
-	3, // 2: protocol.types.Invoice.dueDate:type_name -> google.protobuf.Timestamp
-	3, // 3: protocol.types.Invoice.createdAt:type_name -> google.protobuf.Timestamp
-	3, // 4: protocol.types.Invoice.updatedAt:type_name -> google.protobuf.Timestamp
-	0, // 5: protocol.types.Invoice.items:type_name -> protocol.types.Item
+	3, // 0: protocol.types.Invoice.id:type_name -> protocol.types.UUID
+	3, // 1: protocol.types.Invoice.customerId:type_name -> protocol.types.UUID
+	4, // 2: protocol.types.Invoice.dueDate:type_name -> google.protobuf.Timestamp
+	4, // 3: protocol.types.Invoice.createdAt:type_name -> google.protobuf.Timestamp
+	4, // 4: protocol.types.Invoice.updatedAt:type_name -> google.protobuf.Timestamp
+	1, // 5: protocol.types.Invoice.items:type_name -> protocol.types.Item
 	6, // [6:6] is the sub-list for method output_type
 	6, // [6:6] is the sub-list for method input_type
 	6, // [6:6] is the sub-list for extension type_name
@@ -265,13 +320,14 @@ func file_types_invoice_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_types_invoice_proto_rawDesc), len(file_types_invoice_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_types_invoice_proto_goTypes,
 		DependencyIndexes: file_types_invoice_proto_depIdxs,
+		EnumInfos:         file_types_invoice_proto_enumTypes,
 		MessageInfos:      file_types_invoice_proto_msgTypes,
 	}.Build()
 	File_types_invoice_proto = out.File

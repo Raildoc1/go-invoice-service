@@ -21,7 +21,7 @@ func DecodeJSON[T any](r io.Reader) (T, error) {
 	decoder := json.NewDecoder(r)
 	decoder.DisallowUnknownFields()
 	err := decoder.Decode(&out)
-	return out, err //nolint:wrapcheck // unnecessary
+	return out, err
 }
 
 func EncodeJSON(w io.Writer, item any) error {
