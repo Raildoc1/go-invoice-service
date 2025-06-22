@@ -8,6 +8,7 @@ import (
 type InvoiceStatus string
 
 const (
+	StatusNil      InvoiceStatus = ""
 	StatusPending  InvoiceStatus = "Pending"
 	StatusApproved InvoiceStatus = "Approved"
 	StatusRejected InvoiceStatus = "Rejected"

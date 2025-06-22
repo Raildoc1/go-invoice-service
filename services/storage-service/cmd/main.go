@@ -58,8 +58,9 @@ func main() {
 
 	invoiceService := services.NewInvoice(tm, invoiceRepository, outboxRepository)
 	outboxService := services.NewOutbox(tm, outboxRepository, logger)
+	validationService := services.NewValidation(tm, invoiceRepository, outboxRepository)
 
-	grpcServer := grpc.NewServer(cfg.GRPCConfig, invoiceService, outboxService)
+	grpcServer := grpc.NewServer(cfg.GRPCConfig, invoiceService, outboxService, validationService)
 
 	if err := run(rootCtx, grpcServer, logger); err != nil {
 		logger.ErrorCtx(rootCtx, "Service shutdown with error", zap.Error(err))

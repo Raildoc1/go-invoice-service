@@ -79,9 +79,8 @@ func convertTime(date time.Time) *timestamppb.Timestamp {
 }
 
 func convertUUID(id uuid.UUID) *types.UUID {
-	bytes := [16]byte(id)
 	return &types.UUID{
-		Value: bytes[:],
+		Value: id[:],
 	}
 }
 

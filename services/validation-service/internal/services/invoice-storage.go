@@ -46,17 +46,17 @@ func (s *InvoiceStorage) Close() error {
 
 func (s *InvoiceStorage) GetInvoice(ctx context.Context, id uuid.UUID) (dto.Invoice, dto.InvoiceStatus, error) {
 	req := &pb.GetInvoiceRequest{
-		Id: convertUUID(id),
+		Id: uuidToProto(id),
 	}
 	resp, err := s.invoiceStorageClient.Get(ctx, req)
 	if err != nil {
 		return dto.Invoice{}, dto.NilInvoiceStatus, fmt.Errorf("failed to get invoice: %w", err)
 	}
-	invoice, err := retrieveInvoice(resp.GetInvoice())
+	invoice, err := invoiceFromProto(resp.GetInvoice())
 	if err != nil {
 		return dto.Invoice{}, dto.NilInvoiceStatus, fmt.Errorf("failed to retrieve invoice: %w", err)
 	}
-	invoiceStatus, err := retrieveInvoiceStatus(resp.GetStatus())
+	invoiceStatus, err := invoiceStatusFromProto(resp.GetStatus())
 	if err != nil {
 		return dto.Invoice{}, dto.NilInvoiceStatus, fmt.Errorf("failed to retrieve invoice status: %w", err)
 	}
@@ -65,7 +65,7 @@ func (s *InvoiceStorage) GetInvoice(ctx context.Context, id uuid.UUID) (dto.Invo
 
 func (s *InvoiceStorage) SetApproved(ctx context.Context, id uuid.UUID) error {
 	req := &pb.SetApprovedRequest{
-		Id: convertUUID(id),
+		Id: uuidToProto(id),
 	}
 	_, err := s.invoiceStorageClient.SetApproved(ctx, req)
 	if err != nil {
@@ -76,7 +76,7 @@ func (s *InvoiceStorage) SetApproved(ctx context.Context, id uuid.UUID) error {
 
 func (s *InvoiceStorage) SetRejected(ctx context.Context, id uuid.UUID) error {
 	req := &pb.SetRejectedRequest{
-		Id: convertUUID(id),
+		Id: uuidToProto(id),
 	}
 	_, err := s.invoiceStorageClient.SetRejected(ctx, req)
 	if err != nil {
@@ -85,7 +85,7 @@ func (s *InvoiceStorage) SetRejected(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func retrieveInvoiceStatus(status types.InvoiceStatus) (dto.InvoiceStatus, error) {
+func invoiceStatusFromProto(status types.InvoiceStatus) (dto.InvoiceStatus, error) {
 	switch status {
 	case types.InvoiceStatus_Pending:
 		return dto.PendingInvoiceStatus, nil
@@ -97,12 +97,12 @@ func retrieveInvoiceStatus(status types.InvoiceStatus) (dto.InvoiceStatus, error
 	return dto.NilInvoiceStatus, fmt.Errorf("invalid invoice status %s", status.String())
 }
 
-func retrieveInvoice(invoice *types.Invoice) (dto.Invoice, error) {
-	id, err := retrieveUUID(invoice.Id)
+func invoiceFromProto(invoice *types.Invoice) (dto.Invoice, error) {
+	id, err := uuidFromProto(invoice.Id)
 	if err != nil {
 		return dto.Invoice{}, err
 	}
-	customerId, err := retrieveUUID(invoice.CustomerId)
+	customerId, err := uuidFromProto(invoice.CustomerId)
 	if err != nil {
 		return dto.Invoice{}, err
 	}
@@ -114,22 +114,22 @@ func retrieveInvoice(invoice *types.Invoice) (dto.Invoice, error) {
 		DueDate:    invoice.DueDate.AsTime(),
 		CreatedAt:  invoice.CreatedAt.AsTime(),
 		UpdatedAt:  invoice.UpdatedAt.AsTime(),
-		Items:      retrieveItems(invoice.Items),
+		Items:      itemsFromProto(invoice.Items),
 		Notes:      *invoice.Notes,
 	}, nil
 }
 
-func retrieveItems(items []*types.Item) []dto.Item {
+func itemsFromProto(items []*types.Item) []dto.Item {
 	res := make([]dto.Item, len(items))
 
 	for i, item := range items {
-		res[i] = retrieveItem(item)
+		res[i] = timeFromProto(item)
 	}
 
 	return res
 }
 
-func retrieveItem(item *types.Item) dto.Item {
+func timeFromProto(item *types.Item) dto.Item {
 	return dto.Item{
 		Description: *item.Description,
 		Quantity:    *item.Quantity,
@@ -138,7 +138,7 @@ func retrieveItem(item *types.Item) dto.Item {
 	}
 }
 
-func retrieveUUID(id *types.UUID) (uuid.UUID, error) {
+func uuidFromProto(id *types.UUID) (uuid.UUID, error) {
 	res, err := uuid.FromBytes(id.Value)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("invalid uuid: %w", err)
@@ -146,9 +146,8 @@ func retrieveUUID(id *types.UUID) (uuid.UUID, error) {
 	return res, nil
 }
 
-func convertUUID(id uuid.UUID) *types.UUID {
-	bytes := [16]byte(id)
+func uuidToProto(id uuid.UUID) *types.UUID {
 	return &types.UUID{
-		Value: bytes[:],
+		Value: id[:],
 	}
 }
