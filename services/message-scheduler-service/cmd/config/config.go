@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"go-invoice-service/common/pkg/flagtypes"
+	"go-invoice-service/common/pkg/promutils"
 	"message-sheduler-service/internal/controllers"
 	"message-sheduler-service/internal/services"
 	"os"
@@ -23,14 +24,18 @@ const (
 	retryIntervalEnv     = "RETRY_INTERVAL_MS"
 	dispatchIntervalFlag = "dispatch-interval"
 	dispatchIntervalEnv  = "DISPATCH_INTERVAL_MS"
+	prometheusPortFlag   = "prometheus-port"
+	prometheusPortEnv    = "PROMETHEUS_PORT"
 )
 
 const (
 	defaultKafkaAddress     = "localhost:9092"
-	defaultStorageAddress   = "localhost:9090"
+	defaultStorageAddress   = "localhost:5000"
 	defaultWorkersCount     = 3
 	defaultRetryInterval    = 30 * time.Second
 	defaultDispatchInterval = 1 * time.Second
+	defaultShutdownTimeout  = 5 * time.Second
+	defaultPrometheusPort   = 9090
 )
 
 var defaultRetryAttempts = []time.Duration{time.Second, 3 * time.Second, 5 * time.Second}
@@ -39,6 +44,7 @@ type Config struct {
 	KafkaProducerConfig    services.KafkaProducerConfig
 	StorageConfig          services.StorageConfig
 	OutboxDispatcherConfig controllers.OutboxDispatcherConfig
+	PrometheusConfig       promutils.PrometheusConfig
 }
 
 func Load() (*Config, error) {
@@ -48,6 +54,7 @@ func Load() (*Config, error) {
 	workersCount := defaultWorkersCount
 	retryInterval := defaultRetryInterval
 	dispatchInterval := defaultDispatchInterval
+	prometheusPort := defaultPrometheusPort
 
 	// Flags Definition.
 
@@ -65,6 +72,9 @@ func Load() (*Config, error) {
 
 	dispatchIntervalFlagVal := flagtypes.NewInt()
 	flag.Var(dispatchIntervalFlagVal, dispatchIntervalFlag, "Dispatch interval (ms)")
+
+	prometheusPortFlagVal := flagtypes.NewInt()
+	flag.Var(prometheusPortFlagVal, prometheusPortFlag, "Prometheus port")
 
 	flag.Parse()
 
@@ -88,6 +98,10 @@ func Load() (*Config, error) {
 
 	if val, ok := dispatchIntervalFlagVal.Value(); ok {
 		dispatchInterval = time.Duration(val) * time.Millisecond
+	}
+
+	if val, ok := prometheusPortFlagVal.Value(); ok {
+		prometheusPort = val
 	}
 
 	// Environment Variables.
@@ -124,6 +138,14 @@ func Load() (*Config, error) {
 		dispatchInterval = time.Duration(val) * time.Millisecond
 	}
 
+	if valStr, ok := os.LookupEnv(prometheusPortEnv); ok {
+		val, err := strconv.Atoi(valStr)
+		if err != nil {
+			return &Config{}, fmt.Errorf("%w: '%s' env variable parsing failed", err, prometheusPortEnv)
+		}
+		prometheusPort = val
+	}
+
 	// Validation.
 
 	if workersCount < 1 {
@@ -138,6 +160,10 @@ func Load() (*Config, error) {
 		return &Config{}, errors.New("dispatch internal must be greater than zero")
 	}
 
+	if prometheusPort < 0 || prometheusPort > 65535 {
+		return &Config{}, errors.New("prometheus port must be between 0 and 65535")
+	}
+
 	return &Config{
 		KafkaProducerConfig: services.KafkaProducerConfig{
 			ServerAddress: kafkaAddress,
@@ -149,6 +175,10 @@ func Load() (*Config, error) {
 			DispatchInterval: dispatchInterval,
 			RetryIn:          retryInterval,
 			NumWorkers:       int32(workersCount),
+		},
+		PrometheusConfig: promutils.PrometheusConfig{
+			PortToListen:    uint16(prometheusPort),
+			ShutdownTimeout: defaultShutdownTimeout,
 		},
 	}, nil
 }

@@ -6,7 +6,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
 	"go-invoice-service/api-service/internal/httpserver/handlers"
-	"go-invoice-service/common/pkg/http/middleware"
+	"go-invoice-service/api-service/internal/httpserver/middleware"
+	commonMiddleware "go-invoice-service/common/pkg/http/middleware"
 	"go-invoice-service/common/pkg/logging"
 	"net/http"
 )
@@ -47,23 +48,27 @@ func (s *Server) Run() error {
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
+	ctx, cancel := context.WithTimeout(context.Background(), s.cfg.ShutdownTimeout)
+	defer cancel()
 	return s.srv.Shutdown(ctx)
 }
 
 func (s *Server) createMux() *chi.Mux {
 	router := chi.NewRouter()
 
-	// middleware
-	panicRecover := middleware.NewPanicRecover(s.logger)
-	loggerContextMiddleware := middleware.NewLogging()
-	requestDecompression := middleware.NewRequestDecompressor(s.logger)
-	responseCompression := middleware.NewResponseCompressor(s.logger, gzip.BestSpeed)
+	// commonMiddleware
+	panicRecover := commonMiddleware.NewPanicRecover(s.logger)
+	loggerContextMiddleware := commonMiddleware.NewLogging()
+	requestDecompression := commonMiddleware.NewRequestDecompressor(s.logger)
+	responseCompression := commonMiddleware.NewResponseCompressor(s.logger, gzip.BestSpeed)
+	prometheusMiddleware := middleware.NewPrometheus()
 
 	//handlers
 	invoiceHandler := handlers.NewInvoice(s.storageService, s.logger)
 	authHandler := handlers.NewAuth()
 
 	// router
+	router.Use(prometheusMiddleware.CreateHandler)
 	router.Use(loggerContextMiddleware.CreateHandler)
 	router.Use(panicRecover.CreateHandler)
 	router.Route("/api/user/", func(router chi.Router) {

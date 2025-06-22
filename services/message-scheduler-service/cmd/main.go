@@ -3,21 +3,27 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"go-invoice-service/common/pkg/logging"
+	"go-invoice-service/common/pkg/promutils"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
 	"log"
 	"message-sheduler-service/cmd/config"
 	"message-sheduler-service/internal/controllers"
+	"message-sheduler-service/internal/metrics"
 	"message-sheduler-service/internal/services"
 	"message-sheduler-service/internal/setup"
+	"net/http"
 	"os/signal"
 	"syscall"
 )
 
 func main() {
+	metrics.MustInit()
+
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatal(err)
@@ -88,6 +94,25 @@ func run(
 		errCh := outboxDispatcher.Run(ctx)
 		for err := range errCh {
 			logger.ErrorCtx(ctx, "Outbox Dispatching Error", zap.Error(err))
+		}
+		return nil
+	})
+
+	promServer := promutils.NewServer(cfg.PrometheusConfig)
+
+	g.Go(func() error {
+		defer logger.InfoCtx(ctx, "Prometheus HTTP server stopped")
+		if err := promServer.Run(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			return fmt.Errorf("HTTP server error: %w", err)
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		defer logger.InfoCtx(ctx, "Prometheus HTTP server shutdown")
+		<-ctx.Done()
+		if err := promServer.Shutdown(ctx); err != nil {
+			return fmt.Errorf("shutdown HTTP server error: %w", err)
 		}
 		return nil
 	})

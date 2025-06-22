@@ -36,6 +36,6 @@ WORKDIR /
 COPY --from=build-stage /go-invoice-service/services/storage-service/server ./server
 
 ENV POSTGRES_CONNECTION_STRING=""
-ENV GRPC_PORT=9090
+ENV GRPC_PORT=5000
 
 ENTRYPOINT ["./server"]

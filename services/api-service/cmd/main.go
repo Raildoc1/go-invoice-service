@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"go-invoice-service/api-service/cmd/config"
 	"go-invoice-service/api-service/internal/httpserver"
+	"go-invoice-service/api-service/internal/metrics"
 	"go-invoice-service/api-service/internal/services"
 	"go-invoice-service/common/pkg/jwtfactory"
 	"go-invoice-service/common/pkg/logging"
+	"go-invoice-service/common/pkg/promutils"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
@@ -20,6 +22,8 @@ import (
 )
 
 func main() {
+	metrics.MustInit()
+
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatal(err)
@@ -93,9 +97,26 @@ func run(
 	g.Go(func() error {
 		defer logger.InfoCtx(ctx, "HTTP server shutdown")
 		<-ctx.Done()
-		ctx, cancel := context.WithTimeout(context.Background(), cfg.HTTPServerConfig.ShutdownTimeout)
-		defer cancel()
 		if err := httpServer.Shutdown(ctx); err != nil {
+			return fmt.Errorf("shutdown HTTP server error: %w", err)
+		}
+		return nil
+	})
+
+	promServer := promutils.NewServer(cfg.PrometheusConfig)
+
+	g.Go(func() error {
+		defer logger.InfoCtx(ctx, "Prometheus HTTP server stopped")
+		if err := promServer.Run(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			return fmt.Errorf("HTTP server error: %w", err)
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		defer logger.InfoCtx(ctx, "Prometheus HTTP server shutdown")
+		<-ctx.Done()
+		if err := promServer.Shutdown(ctx); err != nil {
 			return fmt.Errorf("shutdown HTTP server error: %w", err)
 		}
 		return nil

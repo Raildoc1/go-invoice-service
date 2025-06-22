@@ -41,9 +41,10 @@ WORKDIR /
 COPY --from=build-stage /go-invoice-service/services/message-scheduler-service/server ./server
 
 ENV KAFKA_ADDRESS="localhost:9092"
-ENV STORAGE_ADDRESS="localhost:9090"
+ENV STORAGE_ADDRESS="localhost:5000"
 ENV WORKERS_COUNT=3
 ENV RETRY_INTERVAL_MS=30000
 ENV DISPATCH_INTERVAL_MS=1000
+ENV PROMETHEUS_PORT=9090
 
 ENTRYPOINT ["./server"]
