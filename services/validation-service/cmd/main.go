@@ -55,7 +55,7 @@ func main() {
 	)
 	defer cancelCtx()
 
-	kafkaConsumer, err := services.NewKafkaConsumer(cfg.KafkaConsumerConfig)
+	kafkaConsumer, err := services.NewKafkaConsumer(cfg.KafkaConsumerConfig, logger)
 	if err != nil {
 		logger.ErrorCtx(rootCtx, "Failed to create kafka producer", zap.Error(err))
 	}

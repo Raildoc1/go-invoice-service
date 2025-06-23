@@ -23,11 +23,17 @@ const (
 	defaultGRPCPort = 9090
 )
 
-var defaultRetryAttempts = []time.Duration{time.Second, 3 * time.Second, 5 * time.Second}
+var defaultRetryAttempts = []time.Duration{
+	1 * time.Second,
+	2 * time.Second,
+	4 * time.Second,
+	8 * time.Second,
+}
 
 type Config struct {
 	PostgresConfig postgres.Config
 	GRPCConfig     grpc.Config
+	RetryAttempts  []time.Duration
 }
 
 func Load() (*Config, error) {
@@ -86,5 +92,6 @@ func Load() (*Config, error) {
 		GRPCConfig: grpc.Config{
 			Port: uint16(grpcPort),
 		},
+		RetryAttempts: defaultRetryAttempts,
 	}, nil
 }

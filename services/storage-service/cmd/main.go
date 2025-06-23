@@ -12,6 +12,7 @@ import (
 	"log"
 	"os/signal"
 	"storage-service/cmd/config"
+	"storage-service/internal/data"
 	"storage-service/internal/data/postgres"
 	"storage-service/internal/data/repositories"
 	"storage-service/internal/grpc"
@@ -52,9 +53,16 @@ func main() {
 	}
 
 	tm := transactions.NewManager(db)
+	dbtxWithRetry := data.NewDBTXWithRetry(
+		db,
+		cfg.RetryAttempts,
+		func(ctx context.Context, err error) {
+			logger.ErrorCtx(ctx, "database error", zap.Error(err))
+		},
+	)
 
-	invoiceRepository := repositories.NewInvoice(db)
-	outboxRepository := repositories.NewOutbox(db)
+	invoiceRepository := repositories.NewInvoice(dbtxWithRetry)
+	outboxRepository := repositories.NewOutbox(dbtxWithRetry)
 
 	invoiceService := services.NewInvoice(tm, invoiceRepository, outboxRepository)
 	outboxService := services.NewOutbox(tm, outboxRepository, logger)

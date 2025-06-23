@@ -35,7 +35,12 @@ const (
 	defaultOtelCollectorAddress = "localhost:4318"
 )
 
-var defaultRetryAttempts = []time.Duration{time.Second, 3 * time.Second, 5 * time.Second}
+var defaultRetryAttempts = []time.Duration{
+	1 * time.Second,
+	2 * time.Second,
+	4 * time.Second,
+	8 * time.Second,
+}
 
 type Config struct {
 	KafkaConsumerConfig   services.KafkaConsumerConfig
@@ -137,6 +142,7 @@ func Load() (*Config, error) {
 	return &Config{
 		KafkaConsumerConfig: services.KafkaConsumerConfig{
 			ServerAddress: kafkaAddress,
+			RetryAttempts: defaultRetryAttempts,
 		},
 		StorageConfig: services.StorageConfig{
 			ServerAddress: storageAddress,

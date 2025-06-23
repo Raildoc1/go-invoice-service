@@ -5,7 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	"go-invoice-service/common/pkg/logging"
+	"go-invoice-service/common/pkg/timeutils"
 	protocol "go-invoice-service/common/protocol/kafka"
+	"go.uber.org/zap"
+	"time"
 	"validation-service/internal/metrics"
 )
 
@@ -19,14 +23,16 @@ const (
 
 type KafkaConsumerConfig struct {
 	ServerAddress string
+	RetryAttempts []time.Duration
 }
 
 type KafkaConsumer struct {
 	cfg      KafkaConsumerConfig
 	consumer *kafka.Consumer
+	logger   *logging.ZapLogger
 }
 
-func NewKafkaConsumer(cfg KafkaConsumerConfig) (*KafkaConsumer, error) {
+func NewKafkaConsumer(cfg KafkaConsumerConfig, logger *logging.ZapLogger) (*KafkaConsumer, error) {
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers":  cfg.ServerAddress,
 		"group.id":           consumerGroupID,
@@ -43,6 +49,7 @@ func NewKafkaConsumer(cfg KafkaConsumerConfig) (*KafkaConsumer, error) {
 	return &KafkaConsumer{
 		cfg:      cfg,
 		consumer: c,
+		logger:   logger,
 	}, nil
 }
 
@@ -66,7 +73,19 @@ func (r *KafkaConsumer) HandleNext(
 		if err != nil {
 			return err
 		}
-		_, err = r.consumer.Commit()
+		err = timeutils.Retry(
+			ctx,
+			r.cfg.RetryAttempts,
+			func(ctx context.Context) error {
+				_, err = r.consumer.Commit()
+				return err
+			},
+			func(ctx context.Context, err error) bool {
+				r.logger.ErrorCtx(ctx, "kafka commit message fail", zap.Error(err))
+				return true
+			},
+			true,
+		)
 		if err != nil {
 			return fmt.Errorf("failed to commit message %w", err)
 		} else {
