@@ -61,6 +61,9 @@ func Retry(
 			return fmt.Errorf("retry canceled: %w", ctx.Err())
 		}
 		err := function(ctx)
+		if err == nil {
+			return nil
+		}
 		if !onError(ctx, err) {
 			return err
 		}

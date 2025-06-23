@@ -44,6 +44,30 @@ func (q *Queries) AddInvoice(ctx context.Context, arg AddInvoiceParams) error {
 	return err
 }
 
+const addItem = `-- name: AddItem :exec
+insert into invoice_items (invoice_id, description, quantity, unit_price, total)
+values ($1, $2, $3, $4, $5)
+`
+
+type AddItemParams struct {
+	InvoiceID   uuid.UUID
+	Description string
+	Quantity    int32
+	UnitPrice   int64
+	Total       int64
+}
+
+func (q *Queries) AddItem(ctx context.Context, arg AddItemParams) error {
+	_, err := q.db.ExecContext(ctx, addItem,
+		arg.InvoiceID,
+		arg.Description,
+		arg.Quantity,
+		arg.UnitPrice,
+		arg.Total,
+	)
+	return err
+}
+
 const selectInvoice = `-- name: SelectInvoice :one
 select customer_id,
        amount,

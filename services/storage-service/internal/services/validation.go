@@ -35,7 +35,6 @@ func NewValidation(
 }
 
 func (s *Validation) Get(ctx context.Context, id uuid.UUID) (*dto.Invoice, dto.InvoiceStatus, error) {
-
 	var resInvoice *dto.Invoice
 	var resStatus dto.InvoiceStatus
 

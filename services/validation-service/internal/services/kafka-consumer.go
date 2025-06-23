@@ -69,6 +69,7 @@ func (r *KafkaConsumer) HandleNext(
 	ev := r.consumer.Poll(pollTimeoutMs)
 	switch e := ev.(type) {
 	case *kafka.Message:
+		r.logger.InfoCtx(ctx, "handling kafka message")
 		err := handleMsg(ctx, e.Value)
 		if err != nil {
 			return err
@@ -77,15 +78,17 @@ func (r *KafkaConsumer) HandleNext(
 			ctx,
 			r.cfg.RetryAttempts,
 			func(ctx context.Context) error {
+				r.logger.InfoCtx(ctx, "commiting kafka offset")
 				_, err = r.consumer.Commit()
 				return err
 			},
 			func(ctx context.Context, err error) bool {
-				r.logger.ErrorCtx(ctx, "kafka commit message fail", zap.Error(err))
+				r.logger.ErrorCtx(ctx, "kafka commit offset fail", zap.Error(err))
 				return true
 			},
 			true,
 		)
+		r.logger.InfoCtx(ctx, "kafka offset commited")
 		if err != nil {
 			return fmt.Errorf("failed to commit message %w", err)
 		} else {

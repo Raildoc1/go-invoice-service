@@ -19,7 +19,7 @@ func NewInvoice(dbtx queries.DBTX) *Invoice {
 	}
 }
 
-func (r *Invoice) Add(ctx context.Context, tx *sql.Tx, invoice dto.Invoice, status dto.InvoiceStatus) error {
+func (r *Invoice) Add(ctx context.Context, tx *sql.Tx, invoice *dto.Invoice, status dto.InvoiceStatus) error {
 	qs := r.qs.WithTx(tx)
 
 	err := qs.AddInvoice(ctx, invoiceToDB(invoice, status))
@@ -27,7 +27,24 @@ func (r *Invoice) Add(ctx context.Context, tx *sql.Tx, invoice dto.Invoice, stat
 		return fmt.Errorf("add invoice query failed: %w", err)
 	}
 
+	for _, item := range invoice.Items {
+		err := qs.AddItem(ctx, itemToDB(invoice.ID, item))
+		if err != nil {
+			return fmt.Errorf("add item query failed: %w", err)
+		}
+	}
+
 	return nil
+}
+
+func itemToDB(invoiceID uuid.UUID, item dto.Item) queries.AddItemParams {
+	return queries.AddItemParams{
+		InvoiceID:   invoiceID,
+		Description: item.Description,
+		Quantity:    item.Quantity,
+		UnitPrice:   item.UnitPrice,
+		Total:       item.Total,
+	}
 }
 
 func (r *Invoice) GetInvoice(ctx context.Context, tx *sql.Tx, id uuid.UUID) (*dto.Invoice, dto.InvoiceStatus, error) {
@@ -64,7 +81,7 @@ func createUpdateStatusParams(id uuid.UUID, status dto.InvoiceStatus) queries.Up
 	}
 }
 
-func invoiceToDB(invoice dto.Invoice, status dto.InvoiceStatus) queries.AddInvoiceParams {
+func invoiceToDB(invoice *dto.Invoice, status dto.InvoiceStatus) queries.AddInvoiceParams {
 	return queries.AddInvoiceParams{
 		ID:         invoice.ID,
 		CustomerID: invoice.CustomerID,

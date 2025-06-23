@@ -5,6 +5,14 @@ import (
 	"time"
 )
 
+type InvoiceStatus string
+
+const (
+	StatusPending  InvoiceStatus = "Pending"
+	StatusApproved InvoiceStatus = "Approved"
+	StatusRejected InvoiceStatus = "Rejected"
+)
+
 type Invoice struct {
 	ID         uuid.UUID
 	CustomerID uuid.UUID

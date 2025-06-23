@@ -67,15 +67,118 @@ func (x *UploadRequest) GetInvoice() *types.Invoice {
 	return nil
 }
 
+type GetRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            *types.UUID            `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRequest) Reset() {
+	*x = GetRequest{}
+	mi := &file_apiservice_storage_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRequest) ProtoMessage() {}
+
+func (x *GetRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_apiservice_storage_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRequest.ProtoReflect.Descriptor instead.
+func (*GetRequest) Descriptor() ([]byte, []int) {
+	return file_apiservice_storage_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *GetRequest) GetId() *types.UUID {
+	if x != nil {
+		return x.Id
+	}
+	return nil
+}
+
+type GetResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Invoice       *types.Invoice         `protobuf:"bytes,1,opt,name=invoice" json:"invoice,omitempty"`
+	Status        *types.InvoiceStatus   `protobuf:"varint,2,opt,name=status,enum=protocol.types.InvoiceStatus" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetResponse) Reset() {
+	*x = GetResponse{}
+	mi := &file_apiservice_storage_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetResponse) ProtoMessage() {}
+
+func (x *GetResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_apiservice_storage_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetResponse.ProtoReflect.Descriptor instead.
+func (*GetResponse) Descriptor() ([]byte, []int) {
+	return file_apiservice_storage_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GetResponse) GetInvoice() *types.Invoice {
+	if x != nil {
+		return x.Invoice
+	}
+	return nil
+}
+
+func (x *GetResponse) GetStatus() types.InvoiceStatus {
+	if x != nil && x.Status != nil {
+		return *x.Status
+	}
+	return types.InvoiceStatus(0)
+}
+
 var File_apiservice_storage_proto protoreflect.FileDescriptor
 
 const file_apiservice_storage_proto_rawDesc = "" +
 	"\n" +
-	"\x18apiservice/storage.proto\x12\x1cprotocol.api_service.storage\x1a\x1bgoogle/protobuf/empty.proto\x1a\x13types/invoice.proto\"B\n" +
+	"\x18apiservice/storage.proto\x12\x1cprotocol.api_service.storage\x1a\x1bgoogle/protobuf/empty.proto\x1a\x13types/invoice.proto\x1a\x10types/uuid.proto\"B\n" +
 	"\rUploadRequest\x121\n" +
-	"\ainvoice\x18\x01 \x01(\v2\x17.protocol.types.InvoiceR\ainvoice2_\n" +
+	"\ainvoice\x18\x01 \x01(\v2\x17.protocol.types.InvoiceR\ainvoice\"2\n" +
+	"\n" +
+	"GetRequest\x12$\n" +
+	"\x02id\x18\x01 \x01(\v2\x14.protocol.types.UUIDR\x02id\"w\n" +
+	"\vGetResponse\x121\n" +
+	"\ainvoice\x18\x01 \x01(\v2\x17.protocol.types.InvoiceR\ainvoice\x125\n" +
+	"\x06status\x18\x02 \x01(\x0e2\x1d.protocol.types.InvoiceStatusR\x06status2\xbb\x01\n" +
 	"\x0eInvoiceStorage\x12M\n" +
-	"\x06Upload\x12+.protocol.api_service.storage.UploadRequest\x1a\x16.google.protobuf.EmptyB5Z3go-invoice-service/common/protocol/proto/apiserviceb\beditionsp\xe8\a"
+	"\x06Upload\x12+.protocol.api_service.storage.UploadRequest\x1a\x16.google.protobuf.Empty\x12Z\n" +
+	"\x03Get\x12(.protocol.api_service.storage.GetRequest\x1a).protocol.api_service.storage.GetResponseB5Z3go-invoice-service/common/protocol/proto/apiserviceb\beditionsp\xe8\a"
 
 var (
 	file_apiservice_storage_proto_rawDescOnce sync.Once
@@ -89,21 +192,30 @@ func file_apiservice_storage_proto_rawDescGZIP() []byte {
 	return file_apiservice_storage_proto_rawDescData
 }
 
-var file_apiservice_storage_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_apiservice_storage_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_apiservice_storage_proto_goTypes = []any{
-	(*UploadRequest)(nil), // 0: protocol.api_service.storage.UploadRequest
-	(*types.Invoice)(nil), // 1: protocol.types.Invoice
-	(*emptypb.Empty)(nil), // 2: google.protobuf.Empty
+	(*UploadRequest)(nil),    // 0: protocol.api_service.storage.UploadRequest
+	(*GetRequest)(nil),       // 1: protocol.api_service.storage.GetRequest
+	(*GetResponse)(nil),      // 2: protocol.api_service.storage.GetResponse
+	(*types.Invoice)(nil),    // 3: protocol.types.Invoice
+	(*types.UUID)(nil),       // 4: protocol.types.UUID
+	(types.InvoiceStatus)(0), // 5: protocol.types.InvoiceStatus
+	(*emptypb.Empty)(nil),    // 6: google.protobuf.Empty
 }
 var file_apiservice_storage_proto_depIdxs = []int32{
-	1, // 0: protocol.api_service.storage.UploadRequest.invoice:type_name -> protocol.types.Invoice
-	0, // 1: protocol.api_service.storage.InvoiceStorage.Upload:input_type -> protocol.api_service.storage.UploadRequest
-	2, // 2: protocol.api_service.storage.InvoiceStorage.Upload:output_type -> google.protobuf.Empty
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	3, // 0: protocol.api_service.storage.UploadRequest.invoice:type_name -> protocol.types.Invoice
+	4, // 1: protocol.api_service.storage.GetRequest.id:type_name -> protocol.types.UUID
+	3, // 2: protocol.api_service.storage.GetResponse.invoice:type_name -> protocol.types.Invoice
+	5, // 3: protocol.api_service.storage.GetResponse.status:type_name -> protocol.types.InvoiceStatus
+	0, // 4: protocol.api_service.storage.InvoiceStorage.Upload:input_type -> protocol.api_service.storage.UploadRequest
+	1, // 5: protocol.api_service.storage.InvoiceStorage.Get:input_type -> protocol.api_service.storage.GetRequest
+	6, // 6: protocol.api_service.storage.InvoiceStorage.Upload:output_type -> google.protobuf.Empty
+	2, // 7: protocol.api_service.storage.InvoiceStorage.Get:output_type -> protocol.api_service.storage.GetResponse
+	6, // [6:8] is the sub-list for method output_type
+	4, // [4:6] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_apiservice_storage_proto_init() }
@@ -117,7 +229,7 @@ func file_apiservice_storage_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_apiservice_storage_proto_rawDesc), len(file_apiservice_storage_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   1,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -15,7 +15,7 @@ create table invoices
 
 create table invoice_items
 (
-    id          uuid primary key,
+    id          bigint generated always as identity primary key,
     invoice_id  uuid references invoices (id) not null,
     description text                          not null,
     quantity    int                           not null,

@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	InvoiceStorage_Upload_FullMethodName = "/protocol.api_service.storage.InvoiceStorage/Upload"
+	InvoiceStorage_Get_FullMethodName    = "/protocol.api_service.storage.InvoiceStorage/Get"
 )
 
 // InvoiceStorageClient is the client API for InvoiceStorage service.
@@ -28,6 +29,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type InvoiceStorageClient interface {
 	Upload(ctx context.Context, in *UploadRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error)
 }
 
 type invoiceStorageClient struct {
@@ -48,11 +50,22 @@ func (c *invoiceStorageClient) Upload(ctx context.Context, in *UploadRequest, op
 	return out, nil
 }
 
+func (c *invoiceStorageClient) Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetResponse)
+	err := c.cc.Invoke(ctx, InvoiceStorage_Get_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // InvoiceStorageServer is the server API for InvoiceStorage service.
 // All implementations must embed UnimplementedInvoiceStorageServer
 // for forward compatibility.
 type InvoiceStorageServer interface {
 	Upload(context.Context, *UploadRequest) (*emptypb.Empty, error)
+	Get(context.Context, *GetRequest) (*GetResponse, error)
 	mustEmbedUnimplementedInvoiceStorageServer()
 }
 
@@ -65,6 +78,9 @@ type UnimplementedInvoiceStorageServer struct{}
 
 func (UnimplementedInvoiceStorageServer) Upload(context.Context, *UploadRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Upload not implemented")
+}
+func (UnimplementedInvoiceStorageServer) Get(context.Context, *GetRequest) (*GetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
 }
 func (UnimplementedInvoiceStorageServer) mustEmbedUnimplementedInvoiceStorageServer() {}
 func (UnimplementedInvoiceStorageServer) testEmbeddedByValue()                        {}
@@ -105,6 +121,24 @@ func _InvoiceStorage_Upload_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _InvoiceStorage_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InvoiceStorageServer).Get(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InvoiceStorage_Get_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InvoiceStorageServer).Get(ctx, req.(*GetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // InvoiceStorage_ServiceDesc is the grpc.ServiceDesc for InvoiceStorage service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -115,6 +149,10 @@ var InvoiceStorage_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Upload",
 			Handler:    _InvoiceStorage_Upload_Handler,
+		},
+		{
+			MethodName: "Get",
+			Handler:    _InvoiceStorage_Get_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

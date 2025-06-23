@@ -2,6 +2,10 @@
 insert into invoices (id, customer_id, amount, currency, due_data, created_at, updated_at, notes, status)
 values ($1, $2, $3, $4, $5, $6, $7, $8, $9);
 
+-- name: AddItem :exec
+insert into invoice_items (invoice_id, description, quantity, unit_price, total)
+values ($1, $2, $3, $4, $5);
+
 -- name: SelectInvoice :one
 select customer_id,
        amount,

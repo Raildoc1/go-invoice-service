@@ -48,7 +48,7 @@ func (s *Storage) Close() error {
 
 func (s *Storage) Upload(ctx context.Context, invoice dto.Invoice) error {
 	req := &pb.UploadRequest{
-		Invoice: convertInvoice(invoice),
+		Invoice: invoiceToPB(invoice),
 	}
 	_, err := s.storageClient.Upload(ctx, req)
 	if err != nil {
@@ -58,43 +58,123 @@ func (s *Storage) Upload(ctx context.Context, invoice dto.Invoice) error {
 	return nil
 }
 
-func convertInvoice(invoice dto.Invoice) *types.Invoice {
-	return &types.Invoice{
-		Id:         convertUUID(invoice.ID),
-		CustomerId: convertUUID(invoice.CustomerID),
-		Amount:     &invoice.Amount,
-		Currency:   &invoice.Currency,
-		DueDate:    convertTime(invoice.DueDate),
-		CreatedAt:  convertTime(invoice.CreatedAt),
-		UpdatedAt:  convertTime(invoice.UpdatedAt),
-		Items:      convertItems(invoice.Items),
-		Notes:      &invoice.Notes,
+func (s *Storage) Get(ctx context.Context, id uuid.UUID) (dto.Invoice, dto.InvoiceStatus, error) {
+	req := &pb.GetRequest{
+		Id: uuidToPB(id),
 	}
+	resp, err := s.storageClient.Get(ctx, req)
+	if err != nil {
+		return dto.Invoice{}, "", fmt.Errorf("failed to get invoice: %w", err)
+	}
+	invoice, err := invoiceFromPB(resp.Invoice)
+	if err != nil {
+		return dto.Invoice{}, "", fmt.Errorf("failed to read invoice from pb: %w", err)
+	}
+	status, err := statusFromPB(resp.Status)
+	if err != nil {
+		return dto.Invoice{}, "", fmt.Errorf("failed to read invoice status from pb: %w", err)
+	}
+	return *invoice, status, nil
 }
 
-func convertTime(date time.Time) *timestamppb.Timestamp {
-	return &timestamppb.Timestamp{
-		Seconds: date.Unix(),
+func statusFromPB(status *types.InvoiceStatus) (dto.InvoiceStatus, error) {
+	switch *status {
+	case types.InvoiceStatus_Pending:
+		return dto.StatusPending, nil
+	case types.InvoiceStatus_Approved:
+		return dto.StatusApproved, nil
+	case types.InvoiceStatus_Rejected:
+		return dto.StatusRejected, nil
 	}
+	return "", fmt.Errorf("invalid invoice status: %s", *status)
 }
 
-func convertUUID(id uuid.UUID) *types.UUID {
-	return &types.UUID{
-		Value: id[:],
+func invoiceFromPB(invoice *types.Invoice) (*dto.Invoice, error) {
+	id, err := uuidFromPB(invoice.Id)
+	if err != nil {
+		return nil, err
 	}
+	customerID, err := uuidFromPB(invoice.CustomerId)
+	if err != nil {
+		return nil, err
+	}
+	return &dto.Invoice{
+		ID:         id,
+		CustomerID: customerID,
+		Amount:     *invoice.Amount,
+		Currency:   *invoice.Currency,
+		DueDate:    invoice.DueDate.AsTime(),
+		CreatedAt:  invoice.CreatedAt.AsTime(),
+		UpdatedAt:  invoice.UpdatedAt.AsTime(),
+		Items:      itemsFromPB(invoice.Items),
+		Notes:      *invoice.Notes,
+	}, nil
 }
 
-func convertItems(items []dto.Item) []*types.Item {
-	res := make([]*types.Item, len(items))
+func itemsFromPB(items []*types.Item) []dto.Item {
+	res := make([]dto.Item, len(items))
 
 	for i, item := range items {
-		res[i] = convertItem(item)
+		res[i] = itemFromPB(item)
 	}
 
 	return res
 }
 
-func convertItem(item dto.Item) *types.Item {
+func itemFromPB(item *types.Item) dto.Item {
+	return dto.Item{
+		Description: *item.Description,
+		Quantity:    *item.Quantity,
+		UnitPrice:   *item.UnitPrice,
+		Total:       *item.Total,
+	}
+}
+
+func uuidFromPB(id *types.UUID) (uuid.UUID, error) {
+	res, err := uuid.FromBytes(id.Value)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("invalid UUID: %w", err)
+	}
+	return res, nil
+}
+
+func invoiceToPB(invoice dto.Invoice) *types.Invoice {
+	return &types.Invoice{
+		Id:         uuidToPB(invoice.ID),
+		CustomerId: uuidToPB(invoice.CustomerID),
+		Amount:     &invoice.Amount,
+		Currency:   &invoice.Currency,
+		DueDate:    timeToPB(invoice.DueDate),
+		CreatedAt:  timeToPB(invoice.CreatedAt),
+		UpdatedAt:  timeToPB(invoice.UpdatedAt),
+		Items:      itemsToPB(invoice.Items),
+		Notes:      &invoice.Notes,
+	}
+}
+
+func timeToPB(date time.Time) *timestamppb.Timestamp {
+	return &timestamppb.Timestamp{
+		Seconds: date.Unix(),
+	}
+}
+
+func uuidToPB(id uuid.UUID) *types.UUID {
+	return &types.UUID{
+		Value: id[:],
+	}
+}
+
+func itemsToPB(items []dto.Item) []*types.Item {
+	res := make([]*types.Item, len(items))
+
+	for i, item := range items {
+		res[i] = itemToPB(item)
+	}
+
+	return res
+}
+
+func itemToPB(item dto.Item) *types.Item {
 	return &types.Item{
 		Description: &item.Description,
 		Quantity:    &item.Quantity,

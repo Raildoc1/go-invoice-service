@@ -9,9 +9,9 @@ import (
 type InvoiceStatus string
 
 const (
-	StatusPending  InvoiceStatus = "PENDING"
-	StatusApproved InvoiceStatus = "APPROVED"
-	StatusRejected InvoiceStatus = "REJECTED"
+	StatusPending  InvoiceStatus = "Pending"
+	StatusApproved InvoiceStatus = "Approved"
+	StatusRejected InvoiceStatus = "Rejected"
 )
 
 type Invoice struct {
@@ -38,7 +38,7 @@ type UploadInvoiceRequest struct {
 }
 
 type GetInvoiceRequest struct {
-	ID string `json:"id"`
+	ID uuid.UUID `json:"id"`
 }
 
 type GetInvoiceResponse struct {

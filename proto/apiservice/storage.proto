@@ -2,6 +2,7 @@ edition = "2023";
 
 import "google/protobuf/empty.proto";
 import "types/invoice.proto";
+import "types/uuid.proto";
 
 package protocol.api_service.storage;
 
@@ -11,6 +12,16 @@ message UploadRequest {
   types.Invoice invoice = 1;
 }
 
+message GetRequest {
+  types.UUID id = 1;
+}
+
+message GetResponse {
+  types.Invoice invoice = 1;
+  types.InvoiceStatus status = 2;
+}
+
 service InvoiceStorage {
   rpc Upload (UploadRequest) returns (google.protobuf.Empty);
+  rpc Get (GetRequest) returns (GetResponse);
 }
