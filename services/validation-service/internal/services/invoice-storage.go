@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/prometheus/client_golang/prometheus"
 	"go-invoice-service/common/pkg/logging"
 	"go-invoice-service/common/protocol/proto/types"
 	pb "go-invoice-service/common/protocol/proto/validation"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"validation-service/internal/dto"
+	"validation-service/internal/metrics"
 )
 
 type StorageConfig struct {
@@ -71,6 +73,9 @@ func (s *InvoiceStorage) SetApproved(ctx context.Context, id uuid.UUID) error {
 	if err != nil {
 		return fmt.Errorf("failed to set approved: %w", err)
 	}
+	metrics.TotalHandledInvoices.With(prometheus.Labels{
+		"status": "approved",
+	}).Inc()
 	return nil
 }
 
@@ -82,6 +87,9 @@ func (s *InvoiceStorage) SetRejected(ctx context.Context, id uuid.UUID) error {
 	if err != nil {
 		return fmt.Errorf("failed to set rejected: %w", err)
 	}
+	metrics.TotalHandledInvoices.With(prometheus.Labels{
+		"status": "rejected",
+	}).Inc()
 	return nil
 }
 

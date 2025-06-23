@@ -158,6 +158,14 @@ services:
     depends_on:
       - storage-service
 
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib
+    command: [ "--config=/etc/otel-collector-config.yaml" ]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4318:4318"
+
   prometheus:
     image: prom/prometheus
     volumes:

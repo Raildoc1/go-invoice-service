@@ -3,20 +3,26 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"go-invoice-service/common/pkg/logging"
+	"go-invoice-service/common/pkg/promutils"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
 	"log"
+	"net/http"
 	"os/signal"
 	"syscall"
 	"validation-service/cmd/config"
 	"validation-service/internal/controllers"
+	"validation-service/internal/metrics"
 	"validation-service/internal/services"
 )
 
 func main() {
+	metrics.MustInit()
+
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatal(err)
@@ -62,14 +68,19 @@ func main() {
 		logger,
 	)
 
-	if err := run(rootCtx, kafkaDispatcher, logger); err != nil {
+	if err := run(rootCtx, cfg, kafkaDispatcher, logger); err != nil {
 		logger.ErrorCtx(rootCtx, "Service shutdown with error", zap.Error(err))
 	} else {
 		logger.InfoCtx(rootCtx, "Service shutdown gracefully")
 	}
 }
 
-func run(rootCtx context.Context, outboxDispatcher *controllers.KafkaDispatcher, logger *logging.ZapLogger) error {
+func run(
+	rootCtx context.Context,
+	cfg *config.Config,
+	outboxDispatcher *controllers.KafkaDispatcher,
+	logger *logging.ZapLogger,
+) error {
 	g, ctx := errgroup.WithContext(rootCtx)
 
 	g.Go(func() error {
@@ -77,6 +88,25 @@ func run(rootCtx context.Context, outboxDispatcher *controllers.KafkaDispatcher,
 		errCh := outboxDispatcher.Run(ctx)
 		for err := range errCh {
 			logger.ErrorCtx(ctx, "Kafka Dispatching Error", zap.Error(err))
+		}
+		return nil
+	})
+
+	promServer := promutils.NewServer(cfg.PrometheusConfig)
+
+	g.Go(func() error {
+		defer logger.InfoCtx(ctx, "Prometheus HTTP server stopped")
+		if err := promServer.Run(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			return fmt.Errorf("HTTP server error: %w", err)
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		defer logger.InfoCtx(ctx, "Prometheus HTTP server shutdown")
+		<-ctx.Done()
+		if err := promServer.Shutdown(ctx); err != nil {
+			return fmt.Errorf("shutdown HTTP server error: %w", err)
 		}
 		return nil
 	})

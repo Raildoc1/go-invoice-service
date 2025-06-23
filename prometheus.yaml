@@ -8,3 +8,12 @@ scrape_configs:
   - job_name: 'message-scheduler-service'
     static_configs:
       - targets: [ 'message-scheduler-service:9090' ]
+  - job_name: 'validation-service'
+    static_configs:
+      - targets: [ 'validation-service:9090' ]
+  - job_name: 'storage-service'
+    static_configs:
+      - targets: [ 'storage-service:9090' ]
+  - job_name: 'otel-collector'
+    static_configs:
+      - targets: [ 'otel-collector:9464' ]

@@ -5,11 +5,17 @@ import (
 	"errors"
 	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	"github.com/prometheus/client_golang/prometheus"
 	protocol "go-invoice-service/common/protocol/kafka"
+	"validation-service/internal/metrics"
 )
 
 var (
 	ErrPartitionEOF = errors.New("PartitionEOF has been reached")
+)
+
+const (
+	consumerGroupID = "validation-service"
 )
 
 type KafkaConsumerConfig struct {
@@ -24,7 +30,7 @@ type KafkaConsumer struct {
 func NewKafkaConsumer(cfg KafkaConsumerConfig) (*KafkaConsumer, error) {
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers":  cfg.ServerAddress,
-		"group.id":           "validation-service",
+		"group.id":           consumerGroupID,
 		"enable.auto.commit": false,
 		"auto.offset.reset":  "earliest",
 	})
@@ -64,6 +70,13 @@ func (r *KafkaConsumer) HandleNext(
 		_, err = r.consumer.Commit()
 		if err != nil {
 			return fmt.Errorf("failed to commit message %w", err)
+		} else {
+			metrics.KafkaTotalConsumedMessages.With(
+				prometheus.Labels{
+					"topic":             string(protocol.TopicNewInvoice),
+					"consumer-group-id": consumerGroupID,
+				},
+			).Inc()
 		}
 		return nil
 

@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"go-invoice-service/api-service/internal/httpserver"
+	"go-invoice-service/api-service/internal/metrics"
 	"go-invoice-service/api-service/internal/services"
 	"go-invoice-service/common/pkg/flagtypes"
 	"go-invoice-service/common/pkg/jwtfactory"
@@ -40,6 +41,7 @@ type Config struct {
 	JWTConfig        jwtfactory.Config
 	HTTPServerConfig httpserver.Config
 	PrometheusConfig promutils.PrometheusConfig
+	MetricsConfig    metrics.Config
 	ShutdownTimeout  time.Duration
 }
 
@@ -127,6 +129,9 @@ func Load() (*Config, error) {
 		},
 		PrometheusConfig: promutils.PrometheusConfig{
 			PortToListen:    uint16(prometheusPort),
+			ShutdownTimeout: defaultShutdownTimeout,
+		},
+		MetricsConfig: metrics.Config{
 			ShutdownTimeout: defaultShutdownTimeout,
 		},
 		ShutdownTimeout: defaultShutdownTimeout,

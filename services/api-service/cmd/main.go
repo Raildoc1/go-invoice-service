@@ -22,9 +22,25 @@ import (
 )
 
 func main() {
-	metrics.MustInit()
-
 	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mp, err := metrics.SetupMeterProvider()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer mp.Shutdown(context.Background())
+
+	metrics.InitCustomMetric()
+
+	mtrs, err := metrics.New(cfg.MetricsConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer mtrs.Shutdown()
+	err = mtrs.Start()
 	if err != nil {
 		log.Fatal(err)
 	}
