@@ -62,7 +62,7 @@ func (s *Server) createMux() *chi.Mux {
 	loggerContextMiddleware := commonMiddleware.NewLogging()
 	requestDecompression := commonMiddleware.NewRequestDecompressor(s.logger)
 	responseCompression := commonMiddleware.NewResponseCompressor(s.logger, gzip.BestSpeed)
-	prometheusMiddleware := middleware.NewPrometheus()
+	statsMiddleware := middleware.NewOpenTelemetryStats()
 
 	//handlers
 	invoiceHandler := handlers.NewInvoice(s.storageService, s.logger)
@@ -74,9 +74,9 @@ func (s *Server) createMux() *chi.Mux {
 	invoiceGetHandler := otelhttp.NewHandler(http.HandlerFunc(invoiceHandler.Get), "get-invoice")
 
 	// router
-	router.Use(prometheusMiddleware.CreateHandler)
-	router.Use(loggerContextMiddleware.CreateHandler)
 	router.Use(panicRecover.CreateHandler)
+	router.Use(statsMiddleware.CreateHandler)
+	router.Use(loggerContextMiddleware.CreateHandler)
 	router.Route("/api/user/", func(router chi.Router) {
 		router.Post("/register", authRegisterHandler.ServeHTTP)
 		router.Post("/login", authLoginHandler.ServeHTTP)

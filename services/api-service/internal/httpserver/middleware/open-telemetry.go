@@ -1,17 +1,15 @@
 package middleware
 
 import (
-	"github.com/prometheus/client_golang/prometheus"
 	"go-invoice-service/api-service/internal/metrics"
 	"net/http"
-	"strconv"
 	"time"
 )
 
-type Prometheus struct{}
+type OpenTelemetryStats struct{}
 
-func NewPrometheus() *Prometheus {
-	return &Prometheus{}
+func NewOpenTelemetryStats() *OpenTelemetryStats {
+	return &OpenTelemetryStats{}
 }
 
 var _ http.ResponseWriter = (*ResponseWriterWrapper)(nil)
@@ -34,7 +32,7 @@ func (r *ResponseWriterWrapper) WriteHeader(statusCode int) {
 	r.inner.WriteHeader(statusCode)
 }
 
-func (p *Prometheus) CreateHandler(next http.Handler) http.Handler {
+func (p *OpenTelemetryStats) CreateHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		wrapper := ResponseWriterWrapper{
@@ -47,13 +45,7 @@ func (p *Prometheus) CreateHandler(next http.Handler) http.Handler {
 		}
 		requestDuration := time.Since(start)
 
-		labels := prometheus.Labels{
-			"method": r.Method,
-			"path":   r.URL.Path,
-			"status": strconv.Itoa(status),
-		}
-
-		metrics.HttpRequestsTotal.With(labels).Inc()
-		metrics.HttpRequestDuration.With(labels).Observe(requestDuration.Seconds())
+		metrics.IncHTTPRequestsTotal(r.Context(), r.Method, r.URL.Path, status)
+		metrics.RecordHTTPRequestDuration(r.Context(), r.Method, r.URL.Path, status, requestDuration)
 	})
 }

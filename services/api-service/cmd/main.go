@@ -11,7 +11,7 @@ import (
 	"go-invoice-service/api-service/internal/services"
 	"go-invoice-service/common/pkg/jwtfactory"
 	"go-invoice-service/common/pkg/logging"
-	"go-invoice-service/common/pkg/promutils"
+	"go-invoice-service/common/pkg/meterutils"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
@@ -27,23 +27,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	mp, err := metrics.SetupMeterProvider()
+	mp, err := meterutils.SetupMeterProvider(cfg.OpenTelemetryConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer mp.Shutdown(context.Background())
 
-	metrics.InitCustomMetric()
-
-	mtrs, err := metrics.New(cfg.MetricsConfig)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer mtrs.Shutdown()
-	err = mtrs.Start()
-	if err != nil {
-		log.Fatal(err)
-	}
+	metrics.MustInitCustomMetric()
 
 	cfgJSON, err := json.MarshalIndent(cfg, "", "   ")
 	if err != nil {
@@ -119,7 +109,7 @@ func run(
 		return nil
 	})
 
-	promServer := promutils.NewServer(cfg.PrometheusConfig)
+	promServer := meterutils.NewPrometheusServer(cfg.PrometheusConfig)
 
 	g.Go(func() error {
 		defer logger.InfoCtx(ctx, "Prometheus HTTP server stopped")

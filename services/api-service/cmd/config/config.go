@@ -5,44 +5,46 @@ import (
 	"flag"
 	"fmt"
 	"go-invoice-service/api-service/internal/httpserver"
-	"go-invoice-service/api-service/internal/metrics"
 	"go-invoice-service/api-service/internal/services"
 	"go-invoice-service/common/pkg/flagtypes"
 	"go-invoice-service/common/pkg/jwtfactory"
-	"go-invoice-service/common/pkg/promutils"
+	"go-invoice-service/common/pkg/meterutils"
 	"os"
 	"strconv"
 	"time"
 )
 
 const (
-	httpAddressFlag    = "http-address"
-	httpAddressEnv     = "HTTP_ADDRESS"
-	storageAddressFlag = "storage-address"
-	storageAddressEnv  = "STORAGE_ADDRESS"
-	jwtPrivateKeyFlag  = "jwt-private-key"
-	jwtPrivateKeyEnv   = "JWT_PRIVATE_KEY"
-	prometheusPortFlag = "prometheus-port"
-	prometheusPortEnv  = "PROMETHEUS_PORT"
+	httpAddressFlag          = "http-address"
+	httpAddressEnv           = "HTTP_ADDRESS"
+	storageAddressFlag       = "storage-address"
+	storageAddressEnv        = "STORAGE_ADDRESS"
+	jwtPrivateKeyFlag        = "jwt-private-key"
+	jwtPrivateKeyEnv         = "JWT_PRIVATE_KEY"
+	prometheusPortFlag       = "prometheus-port"
+	prometheusPortEnv        = "PROMETHEUS_PORT"
+	otelCollectorAddressFlag = "otel-collector-address"
+	otelCollectorAddressEnv  = "OTEL_COLLECTOR_ADDRESS"
 )
 
 const (
-	defaultHTTPAddress     = "localhost:8080"
-	defaultStorageAddress  = "localhost:5000"
-	defaultJWTPrivateKey   = "private-key"
-	defaultShutdownTimeout = 5 * time.Second
-	defaultPrometheusPort  = 9090
+	defaultHTTPAddress          = "localhost:8080"
+	defaultStorageAddress       = "localhost:5000"
+	defaultJWTPrivateKey        = "private-key"
+	defaultShutdownTimeout      = 5 * time.Second
+	defaultPrometheusPort       = 9090
+	defaultOtelCollectorAddress = "localhost:4318"
 )
 
 var defaultRetryAttempts = []time.Duration{time.Second, 3 * time.Second, 5 * time.Second}
 
 type Config struct {
-	StorageConfig    services.StorageConfig
-	JWTConfig        jwtfactory.Config
-	HTTPServerConfig httpserver.Config
-	PrometheusConfig promutils.PrometheusConfig
-	MetricsConfig    metrics.Config
-	ShutdownTimeout  time.Duration
+	StorageConfig       services.StorageConfig
+	JWTConfig           jwtfactory.Config
+	HTTPServerConfig    httpserver.Config
+	PrometheusConfig    meterutils.PrometheusConfig
+	OpenTelemetryConfig meterutils.OpenTelemetryConfig
+	ShutdownTimeout     time.Duration
 }
 
 func Load() (*Config, error) {
@@ -51,6 +53,7 @@ func Load() (*Config, error) {
 	storageAddress := defaultStorageAddress
 	jwtPrivateKey := defaultJWTPrivateKey
 	prometheusPort := defaultPrometheusPort
+	otelCollectorAddress := defaultOtelCollectorAddress
 
 	// Flags Definition.
 
@@ -65,6 +68,9 @@ func Load() (*Config, error) {
 
 	prometheusPortFlagVal := flagtypes.NewInt()
 	flag.Var(prometheusPortFlagVal, prometheusPortFlag, "Prometheus port")
+
+	otelCollectorAddressFlagVal := flagtypes.NewString()
+	flag.Var(otelCollectorAddressFlagVal, otelCollectorAddressFlag, "OpenTelemetry Collector address")
 
 	flag.Parse()
 
@@ -84,6 +90,10 @@ func Load() (*Config, error) {
 
 	if val, ok := prometheusPortFlagVal.Value(); ok {
 		prometheusPort = val
+	}
+
+	if val, ok := otelCollectorAddressFlagVal.Value(); ok {
+		otelCollectorAddress = val
 	}
 
 	// Environment Variables.
@@ -108,6 +118,10 @@ func Load() (*Config, error) {
 		prometheusPort = val
 	}
 
+	if valStr, ok := os.LookupEnv(otelCollectorAddressEnv); ok {
+		otelCollectorAddress = valStr
+	}
+
 	// Validation.
 
 	if prometheusPort < 0 || prometheusPort > 65535 {
@@ -127,12 +141,13 @@ func Load() (*Config, error) {
 			ServerAddress:   httpAddress,
 			ShutdownTimeout: defaultShutdownTimeout,
 		},
-		PrometheusConfig: promutils.PrometheusConfig{
+		PrometheusConfig: meterutils.PrometheusConfig{
 			PortToListen:    uint16(prometheusPort),
 			ShutdownTimeout: defaultShutdownTimeout,
 		},
-		MetricsConfig: metrics.Config{
-			ShutdownTimeout: defaultShutdownTimeout,
+		OpenTelemetryConfig: meterutils.OpenTelemetryConfig{
+			ServiceName:      "api-service",
+			CollectorAddress: otelCollectorAddress,
 		},
 		ShutdownTimeout: defaultShutdownTimeout,
 	}, nil

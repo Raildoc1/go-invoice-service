@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"go-invoice-service/common/pkg/flagtypes"
-	"go-invoice-service/common/pkg/promutils"
+	"go-invoice-service/common/pkg/meterutils"
 	"os"
 	"strconv"
 	"time"
@@ -38,7 +38,7 @@ type Config struct {
 	KafkaConsumerConfig   services.KafkaConsumerConfig
 	StorageConfig         services.StorageConfig
 	KafkaDispatcherConfig controllers.KafkaDispatcherConfig
-	PrometheusConfig      promutils.PrometheusConfig
+	PrometheusConfig      meterutils.PrometheusConfig
 }
 
 func Load() (*Config, error) {
@@ -128,7 +128,7 @@ func Load() (*Config, error) {
 		KafkaDispatcherConfig: controllers.KafkaDispatcherConfig{
 			PollTimeoutMs: kafkaPollTimeoutMs,
 		},
-		PrometheusConfig: promutils.PrometheusConfig{
+		PrometheusConfig: meterutils.PrometheusConfig{
 			PortToListen:    uint16(prometheusPort),
 			ShutdownTimeout: defaultShutdownTimeout,
 		},

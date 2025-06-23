@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"go-invoice-service/common/pkg/flagtypes"
-	"go-invoice-service/common/pkg/promutils"
+	"go-invoice-service/common/pkg/meterutils"
 	"message-sheduler-service/internal/controllers"
 	"message-sheduler-service/internal/services"
 	"os"
@@ -44,7 +44,7 @@ type Config struct {
 	KafkaProducerConfig    services.KafkaProducerConfig
 	StorageConfig          services.StorageConfig
 	OutboxDispatcherConfig controllers.OutboxDispatcherConfig
-	PrometheusConfig       promutils.PrometheusConfig
+	PrometheusConfig       meterutils.PrometheusConfig
 }
 
 func Load() (*Config, error) {
@@ -176,7 +176,7 @@ func Load() (*Config, error) {
 			RetryIn:          retryInterval,
 			NumWorkers:       int32(workersCount),
 		},
-		PrometheusConfig: promutils.PrometheusConfig{
+		PrometheusConfig: meterutils.PrometheusConfig{
 			PortToListen:    uint16(prometheusPort),
 			ShutdownTimeout: defaultShutdownTimeout,
 		},

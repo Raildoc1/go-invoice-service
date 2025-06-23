@@ -1,4 +1,4 @@
-package promutils
+package meterutils
 
 import (
 	"context"
@@ -19,7 +19,7 @@ type Server struct {
 	srv *http.Server
 }
 
-func NewServer(
+func NewPrometheusServer(
 	cfg PrometheusConfig) *Server {
 	return &Server{
 		cfg: cfg,

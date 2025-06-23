@@ -152,11 +152,13 @@ services:
       PORT_TO_LISTEN: 8080
       STORAGE_ADDRESS: storage-service:5000
       PROMETHEUS_PORT: 9090
+      OTEL_COLLECTOR_ADDRESS: otel-collector:4318
     ports:
       - "8080:8080"
       - "9091:9090"
     depends_on:
       - storage-service
+      - otel-collector
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib

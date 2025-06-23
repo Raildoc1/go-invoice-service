@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"go-invoice-service/common/pkg/logging"
-	"go-invoice-service/common/pkg/promutils"
+	"go-invoice-service/common/pkg/meterutils"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
@@ -98,7 +98,7 @@ func run(
 		return nil
 	})
 
-	promServer := promutils.NewServer(cfg.PrometheusConfig)
+	promServer := meterutils.NewPrometheusServer(cfg.PrometheusConfig)
 
 	g.Go(func() error {
 		defer logger.InfoCtx(ctx, "Prometheus HTTP server stopped")
