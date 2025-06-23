@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
-	"github.com/prometheus/client_golang/prometheus"
 	protocol "go-invoice-service/common/protocol/kafka"
 	"validation-service/internal/metrics"
 )
@@ -71,12 +70,7 @@ func (r *KafkaConsumer) HandleNext(
 		if err != nil {
 			return fmt.Errorf("failed to commit message %w", err)
 		} else {
-			metrics.KafkaTotalConsumedMessages.With(
-				prometheus.Labels{
-					"topic":             string(protocol.TopicNewInvoice),
-					"consumer-group-id": consumerGroupID,
-				},
-			).Inc()
+			metrics.IncKafkaTotalConsumedMessages(ctx, string(protocol.TopicNewInvoice), consumerGroupID)
 		}
 		return nil
 

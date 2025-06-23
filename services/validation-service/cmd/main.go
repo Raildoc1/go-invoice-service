@@ -21,12 +21,18 @@ import (
 )
 
 func main() {
-	metrics.MustInit()
-
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	mp, err := meterutils.SetupMeterProvider(cfg.OpenTelemetryConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer mp.Shutdown(context.Background())
+
+	metrics.MustInitCustomMetric()
 
 	cfgJSON, err := json.MarshalIndent(cfg, "", "   ")
 	if err != nil {

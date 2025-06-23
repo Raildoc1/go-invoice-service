@@ -124,11 +124,13 @@ services:
       KAFKA_ADDRESS: kafka-broker-1:19092,kafka-broker-2:19092,kafka-broker-3:19092
       STORAGE_ADDRESS: storage-service:5000
       WORKERS_COUNT: 3
+      OTEL_COLLECTOR_ADDRESS: otel-collector:4318
     depends_on:
       - storage-service
       - kafka-broker-1
       - kafka-broker-2
       - kafka-broker-3
+      - otel-collector
 
   validation-service:
     build:
@@ -138,11 +140,13 @@ services:
       KAFKA_ADDRESS: kafka-broker-1:19092,kafka-broker-2:19092,kafka-broker-3:19092
       STORAGE_ADDRESS: storage-service:5000
       KAFKA_POLL_TIMEOUT_MS: 100
+      OTEL_COLLECTOR_ADDRESS: otel-collector:4318
     depends_on:
       - storage-service
       - kafka-broker-1
       - kafka-broker-2
       - kafka-broker-3
+      - otel-collector
 
   api-service:
     build:

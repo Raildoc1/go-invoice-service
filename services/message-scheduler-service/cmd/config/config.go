@@ -14,28 +14,31 @@ import (
 )
 
 const (
-	kafkaAddressFlag     = "kafka-address"
-	kafkaAddressEnv      = "KAFKA_ADDRESS"
-	storageAddressFlag   = "storage-address"
-	storageAddressEnv    = "STORAGE_ADDRESS"
-	workersCountFlag     = "workers-count"
-	workersCountEnv      = "WORKERS_COUNT"
-	retryIntervalFlag    = "retry-interval"
-	retryIntervalEnv     = "RETRY_INTERVAL_MS"
-	dispatchIntervalFlag = "dispatch-interval"
-	dispatchIntervalEnv  = "DISPATCH_INTERVAL_MS"
-	prometheusPortFlag   = "prometheus-port"
-	prometheusPortEnv    = "PROMETHEUS_PORT"
+	kafkaAddressFlag         = "kafka-address"
+	kafkaAddressEnv          = "KAFKA_ADDRESS"
+	storageAddressFlag       = "storage-address"
+	storageAddressEnv        = "STORAGE_ADDRESS"
+	workersCountFlag         = "workers-count"
+	workersCountEnv          = "WORKERS_COUNT"
+	retryIntervalFlag        = "retry-interval"
+	retryIntervalEnv         = "RETRY_INTERVAL_MS"
+	dispatchIntervalFlag     = "dispatch-interval"
+	dispatchIntervalEnv      = "DISPATCH_INTERVAL_MS"
+	prometheusPortFlag       = "prometheus-port"
+	prometheusPortEnv        = "PROMETHEUS_PORT"
+	otelCollectorAddressFlag = "otel-collector-address"
+	otelCollectorAddressEnv  = "OTEL_COLLECTOR_ADDRESS"
 )
 
 const (
-	defaultKafkaAddress     = "localhost:9092"
-	defaultStorageAddress   = "localhost:5000"
-	defaultWorkersCount     = 3
-	defaultRetryInterval    = 30 * time.Second
-	defaultDispatchInterval = 1 * time.Second
-	defaultShutdownTimeout  = 5 * time.Second
-	defaultPrometheusPort   = 9090
+	defaultKafkaAddress         = "localhost:9092"
+	defaultStorageAddress       = "localhost:5000"
+	defaultWorkersCount         = 3
+	defaultRetryInterval        = 30 * time.Second
+	defaultDispatchInterval     = 1 * time.Second
+	defaultShutdownTimeout      = 5 * time.Second
+	defaultPrometheusPort       = 9090
+	defaultOtelCollectorAddress = "localhost:4318"
 )
 
 var defaultRetryAttempts = []time.Duration{time.Second, 3 * time.Second, 5 * time.Second}
@@ -45,6 +48,7 @@ type Config struct {
 	StorageConfig          services.StorageConfig
 	OutboxDispatcherConfig controllers.OutboxDispatcherConfig
 	PrometheusConfig       meterutils.PrometheusConfig
+	OpenTelemetryConfig    meterutils.OpenTelemetryConfig
 }
 
 func Load() (*Config, error) {
@@ -55,6 +59,7 @@ func Load() (*Config, error) {
 	retryInterval := defaultRetryInterval
 	dispatchInterval := defaultDispatchInterval
 	prometheusPort := defaultPrometheusPort
+	otelCollectorAddress := defaultOtelCollectorAddress
 
 	// Flags Definition.
 
@@ -75,6 +80,9 @@ func Load() (*Config, error) {
 
 	prometheusPortFlagVal := flagtypes.NewInt()
 	flag.Var(prometheusPortFlagVal, prometheusPortFlag, "Prometheus port")
+
+	otelCollectorAddressFlagVal := flagtypes.NewString()
+	flag.Var(otelCollectorAddressFlagVal, otelCollectorAddressFlag, "OpenTelemetry Collector address")
 
 	flag.Parse()
 
@@ -102,6 +110,10 @@ func Load() (*Config, error) {
 
 	if val, ok := prometheusPortFlagVal.Value(); ok {
 		prometheusPort = val
+	}
+
+	if valStr, ok := os.LookupEnv(otelCollectorAddressEnv); ok {
+		otelCollectorAddress = valStr
 	}
 
 	// Environment Variables.
@@ -179,6 +191,10 @@ func Load() (*Config, error) {
 		PrometheusConfig: meterutils.PrometheusConfig{
 			PortToListen:    uint16(prometheusPort),
 			ShutdownTimeout: defaultShutdownTimeout,
+		},
+		OpenTelemetryConfig: meterutils.OpenTelemetryConfig{
+			ServiceName:      "message-scheduler-service",
+			CollectorAddress: otelCollectorAddress,
 		},
 	}, nil
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/prometheus/client_golang/prometheus"
 	"go-invoice-service/common/pkg/logging"
 	"go-invoice-service/common/protocol/proto/types"
 	pb "go-invoice-service/common/protocol/proto/validation"
@@ -73,9 +72,7 @@ func (s *InvoiceStorage) SetApproved(ctx context.Context, id uuid.UUID) error {
 	if err != nil {
 		return fmt.Errorf("failed to set approved: %w", err)
 	}
-	metrics.TotalHandledInvoices.With(prometheus.Labels{
-		"status": "approved",
-	}).Inc()
+	metrics.IncTotalHandledInvoices(ctx, "approved")
 	return nil
 }
 
@@ -87,9 +84,7 @@ func (s *InvoiceStorage) SetRejected(ctx context.Context, id uuid.UUID) error {
 	if err != nil {
 		return fmt.Errorf("failed to set rejected: %w", err)
 	}
-	metrics.TotalHandledInvoices.With(prometheus.Labels{
-		"status": "rejected",
-	}).Inc()
+	metrics.IncTotalHandledInvoices(ctx, "rejected")
 	return nil
 }
 
