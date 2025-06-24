@@ -1,7 +1,6 @@
 # 🧾 Invoice Service
 
-Example of a modern Go microservice for managing invoices, built with production-ready observability, persistence, and
-message streaming.
+Example of a modern Go microservice for managing invoices, built with persistence, and message streaming.
 
 ---
 
