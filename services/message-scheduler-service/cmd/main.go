@@ -33,7 +33,7 @@ func main() {
 	}
 	defer mp.Shutdown(context.Background())
 
-	metrics.MustInitCustomMetric()
+	metricsCollector := metrics.MustInitCustomMetric()
 
 	cfgJSON, err := json.MarshalIndent(cfg, "", "   ")
 	if err != nil {
@@ -56,7 +56,7 @@ func main() {
 	)
 	defer cancelCtx()
 
-	kafkaProducer, err := services.NewKafkaProducer(cfg.KafkaProducerConfig)
+	kafkaProducer, err := services.NewKafkaProducer(cfg.KafkaProducerConfig, metricsCollector)
 	if err != nil {
 		logger.ErrorCtx(rootCtx, "Failed to create kafka producer", zap.Error(err))
 	}

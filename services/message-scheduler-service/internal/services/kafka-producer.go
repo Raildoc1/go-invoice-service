@@ -4,8 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
-	"message-sheduler-service/internal/metrics"
 )
+
+type KafkaMetrics interface {
+	IncKafkaTotalProduceMessages(ctx context.Context, topic string)
+	IncKafkaTotalProducedBytes(ctx context.Context, topic string, bytesCount int64)
+}
 
 type KafkaProducerConfig struct {
 	ServerAddress string
@@ -13,17 +17,21 @@ type KafkaProducerConfig struct {
 
 type KafkaProducer struct {
 	producer *kafka.Producer
+	metrics  KafkaMetrics
 }
 
-func NewKafkaProducer(cfg KafkaProducerConfig) (*KafkaProducer, error) {
-	p, err := kafka.NewProducer(&kafka.ConfigMap{
+func NewKafkaProducer(cfg KafkaProducerConfig, metrics KafkaMetrics) (*KafkaProducer, error) {
+	producer, err := kafka.NewProducer(&kafka.ConfigMap{
 		"bootstrap.servers": cfg.ServerAddress,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return &KafkaProducer{producer: p}, nil
+	return &KafkaProducer{
+		producer: producer,
+		metrics:  metrics,
+	}, nil
 }
 
 func (p *KafkaProducer) Close() {
@@ -41,8 +49,8 @@ func (p *KafkaProducer) SendMessage(ctx context.Context, topic string, payload [
 	if err != nil {
 		return fmt.Errorf("failed to send message to Kafka server: %w", err)
 	}
-	metrics.IncKafkaTotalProduceMessages(ctx, topic)
-	metrics.IncKafkaTotalProducedBytes(ctx, topic, int64(len(payload)))
+	p.metrics.IncKafkaTotalProduceMessages(ctx, topic)
+	p.metrics.IncKafkaTotalProducedBytes(ctx, topic, int64(len(payload)))
 
 	for {
 		select {

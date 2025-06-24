@@ -8,30 +8,34 @@ import (
 	"time"
 )
 
-var (
+type MetricsCollector struct {
 	httpRequestsTotal      metric.Int64Counter
 	httpRequestDurationSec metric.Float64Histogram
-)
+}
 
-func MustInitCustomMetric() {
+func MustInitCustomMetric() *MetricsCollector {
 	metricProvider := otel.GetMeterProvider()
+
+	m := &MetricsCollector{}
 
 	// HTTP.
 	meter := metricProvider.Meter("http")
 
-	httpRequestsTotal = must(
+	m.httpRequestsTotal = must(
 		meter.Int64Counter(
 			"http_requests_total",
 			metric.WithDescription("total number of HTTP requests"),
 		),
 	)
 
-	httpRequestDurationSec = must(
+	m.httpRequestDurationSec = must(
 		meter.Float64Histogram(
 			"http_request_duration_seconds",
 			metric.WithDescription("HTTP request durations"),
 		),
 	)
+
+	return m
 }
 
 func must[TMetric any](res TMetric, err error) TMetric {
@@ -41,20 +45,20 @@ func must[TMetric any](res TMetric, err error) TMetric {
 	return res
 }
 
-func IncHTTPRequestsTotal(ctx context.Context, method, path string, status int) {
+func (m *MetricsCollector) IncHTTPRequestsTotal(ctx context.Context, method, path string, status int) {
 	attrSet := attribute.NewSet(
 		attribute.KeyValue{Key: "method", Value: attribute.StringValue(method)},
 		attribute.KeyValue{Key: "path", Value: attribute.StringValue(path)},
 		attribute.KeyValue{Key: "status", Value: attribute.IntValue(status)},
 	)
-	httpRequestsTotal.Add(ctx, 1, metric.WithAttributeSet(attrSet))
+	m.httpRequestsTotal.Add(ctx, 1, metric.WithAttributeSet(attrSet))
 }
 
-func RecordHTTPRequestDuration(ctx context.Context, method, path string, status int, duration time.Duration) {
+func (m *MetricsCollector) RecordHTTPRequestDuration(ctx context.Context, method, path string, status int, duration time.Duration) {
 	attrSet := attribute.NewSet(
 		attribute.KeyValue{Key: "method", Value: attribute.StringValue(method)},
 		attribute.KeyValue{Key: "path", Value: attribute.StringValue(path)},
 		attribute.KeyValue{Key: "status", Value: attribute.IntValue(status)},
 	)
-	httpRequestDurationSec.Record(ctx, duration.Seconds(), metric.WithAttributeSet(attrSet))
+	m.httpRequestDurationSec.Record(ctx, duration.Seconds(), metric.WithAttributeSet(attrSet))
 }

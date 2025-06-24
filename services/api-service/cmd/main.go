@@ -33,7 +33,7 @@ func main() {
 	}
 	defer mp.Shutdown(context.Background())
 
-	metrics.MustInitCustomMetric()
+	metricsCollector := metrics.MustInitCustomMetric()
 
 	cfgJSON, err := json.MarshalIndent(cfg, "", "   ")
 	if err != nil {
@@ -64,7 +64,13 @@ func main() {
 
 	tokenFactory := jwtfactory.New(cfg.JWTConfig)
 
-	httpServer := httpserver.New(cfg.HTTPServerConfig, tokenFactory.GetJWTAuth(), storageService, logger)
+	httpServer := httpserver.New(
+		cfg.HTTPServerConfig,
+		tokenFactory.GetJWTAuth(),
+		storageService,
+		metricsCollector,
+		logger,
+	)
 
 	if err := run(rootCtx, cfg, httpServer, logger); err != nil {
 		logger.ErrorCtx(rootCtx, "Service shutdown with error", zap.Error(err))

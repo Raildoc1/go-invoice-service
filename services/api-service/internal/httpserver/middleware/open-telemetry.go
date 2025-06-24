@@ -1,15 +1,24 @@
 package middleware
 
 import (
-	"go-invoice-service/api-service/internal/metrics"
+	"context"
 	"net/http"
 	"time"
 )
 
-type OpenTelemetryStats struct{}
+type HTTPMetrics interface {
+	IncHTTPRequestsTotal(ctx context.Context, method, path string, status int)
+	RecordHTTPRequestDuration(ctx context.Context, method, path string, status int, duration time.Duration)
+}
 
-func NewOpenTelemetryStats() *OpenTelemetryStats {
-	return &OpenTelemetryStats{}
+type OpenTelemetryStats struct {
+	metrics HTTPMetrics
+}
+
+func NewOpenTelemetryStats(metrics HTTPMetrics) *OpenTelemetryStats {
+	return &OpenTelemetryStats{
+		metrics: metrics,
+	}
 }
 
 var _ http.ResponseWriter = (*ResponseWriterWrapper)(nil)
@@ -45,7 +54,7 @@ func (p *OpenTelemetryStats) CreateHandler(next http.Handler) http.Handler {
 		}
 		requestDuration := time.Since(start)
 
-		metrics.IncHTTPRequestsTotal(r.Context(), r.Method, r.URL.Path, status)
-		metrics.RecordHTTPRequestDuration(r.Context(), r.Method, r.URL.Path, status, requestDuration)
+		p.metrics.IncHTTPRequestsTotal(r.Context(), r.Method, r.URL.Path, status)
+		p.metrics.RecordHTTPRequestDuration(r.Context(), r.Method, r.URL.Path, status, requestDuration)
 	})
 }

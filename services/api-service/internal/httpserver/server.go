@@ -12,30 +12,37 @@ import (
 	"net/http"
 )
 
+type MetricsCollector interface {
+	middleware.HTTPMetrics
+}
+
 type StorageService interface {
 	handlers.StorageService
 }
 
 type Server struct {
-	srv            *http.Server
-	cfg            Config
-	jwtTokenAuth   *jwtauth.JWTAuth
-	storageService StorageService
-	logger         *logging.ZapLogger
+	srv              *http.Server
+	cfg              Config
+	jwtTokenAuth     *jwtauth.JWTAuth
+	storageService   StorageService
+	metricsCollector MetricsCollector
+	logger           *logging.ZapLogger
 }
 
 func New(
 	cfg Config,
 	tokenAuth *jwtauth.JWTAuth,
 	storageService StorageService,
+	metricsCollector MetricsCollector,
 	logger *logging.ZapLogger,
 ) *Server {
 	return &Server{
-		srv:            nil,
-		cfg:            cfg,
-		jwtTokenAuth:   tokenAuth,
-		storageService: storageService,
-		logger:         logger,
+		srv:              nil,
+		cfg:              cfg,
+		jwtTokenAuth:     tokenAuth,
+		storageService:   storageService,
+		metricsCollector: metricsCollector,
+		logger:           logger,
 	}
 }
 
@@ -61,7 +68,7 @@ func (s *Server) createMux() *chi.Mux {
 	loggerContextMiddleware := commonMiddleware.NewLogging()
 	requestDecompression := commonMiddleware.NewRequestDecompressor(s.logger)
 	responseCompression := commonMiddleware.NewResponseCompressor(s.logger, gzip.BestSpeed)
-	statsMiddleware := middleware.NewOpenTelemetryStats()
+	statsMiddleware := middleware.NewOpenTelemetryStats(s.metricsCollector)
 
 	//handlers
 	invoiceHandler := handlers.NewInvoice(s.storageService, s.logger)
