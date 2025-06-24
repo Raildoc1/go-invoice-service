@@ -1,4 +1,7 @@
-FROM golang:1.24.0 AS build-stage
+FROM --platform=linux/$TARGETARCH golang:1.24.0-alpine AS build-stage
+
+ARG TARGETARCH
+RUN echo $TARGETARCH
 
 # common mod
 WORKDIR /go-invoice-service/
@@ -20,7 +23,11 @@ COPY ./services/api-service/ ./services/api-service/
 # build
 WORKDIR /go-invoice-service/services/api-service/
 RUN go mod tidy
-RUN CGO_ENABLED=0 GOOS=linux go build -o server ./cmd/main.go
+
+RUN CGO_ENABLED=0 \
+    GOOS=linux \
+    GOARCH=$TARGETARCH \
+    go build -o server ./cmd/main.go
 
 FROM alpine:latest AS release-stage
 
