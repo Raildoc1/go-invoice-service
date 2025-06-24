@@ -1,4 +1,4 @@
-package controllers
+package services
 
 import (
 	"bytes"
@@ -9,13 +9,15 @@ import (
 	"go-invoice-service/common/pkg/logging"
 	protocol "go-invoice-service/common/protocol/kafka"
 	"go.uber.org/zap"
-	"math/rand/v2"
-	"time"
 	"validation-service/internal/dto"
 )
 
-type KafkaConsumer interface {
-	HandleNext(ctx context.Context, pollTimeoutMs int, handleMsg func(context.Context, []byte) error) error
+type MessagesDispatcherConfig struct {
+	PollTimeoutMs int
+}
+
+type InvoiceValidator interface {
+	Validate(*dto.Invoice) bool
 }
 
 type InvoiceStorage interface {
@@ -24,32 +26,37 @@ type InvoiceStorage interface {
 	SetRejected(ctx context.Context, id uuid.UUID) error
 }
 
-type KafkaDispatcherConfig struct {
-	PollTimeoutMs int
+type MessageConsumer interface {
+	PeekNext(pollTimeoutMs int) ([]byte, error)
+	Commit(ctx context.Context) error
+	ErrIsNoMessage(error) bool
 }
 
-type KafkaDispatcher struct {
-	cfg            KafkaDispatcherConfig
-	consumer       KafkaConsumer
-	invoiceStorage InvoiceStorage
-	logger         *logging.ZapLogger
+type MessagesDispatcher struct {
+	cfg              MessagesDispatcherConfig
+	invoiceStorage   InvoiceStorage
+	messageConsumer  MessageConsumer
+	invoiceValidator InvoiceValidator
+	logger           *logging.ZapLogger
 }
 
-func NewKafkaDispatcher(
-	cfg KafkaDispatcherConfig,
-	consumer KafkaConsumer,
+func NewMessagesDispatcher(
+	cfg MessagesDispatcherConfig,
 	invoiceStorage InvoiceStorage,
+	messageConsumer MessageConsumer,
+	invoiceValidator InvoiceValidator,
 	logger *logging.ZapLogger,
-) *KafkaDispatcher {
-	return &KafkaDispatcher{
-		cfg:            cfg,
-		consumer:       consumer,
-		invoiceStorage: invoiceStorage,
-		logger:         logger,
+) *MessagesDispatcher {
+	return &MessagesDispatcher{
+		cfg:              cfg,
+		invoiceStorage:   invoiceStorage,
+		messageConsumer:  messageConsumer,
+		invoiceValidator: invoiceValidator,
+		logger:           logger,
 	}
 }
 
-func (d *KafkaDispatcher) Run(ctx context.Context) <-chan error {
+func (d *MessagesDispatcher) Run(ctx context.Context) <-chan error {
 	errCh := make(chan error)
 
 	go func(ctx context.Context) {
@@ -58,8 +65,10 @@ func (d *KafkaDispatcher) Run(ctx context.Context) <-chan error {
 			if ctx.Err() != nil {
 				return
 			}
-			err := d.consumer.HandleNext(ctx, d.cfg.PollTimeoutMs, d.HandleMessage)
-			if err != nil {
+
+			err := d.tick(ctx, d.HandleMessage)
+
+			if err != nil && !d.messageConsumer.ErrIsNoMessage(err) {
 				errCh <- err
 			}
 		}
@@ -68,7 +77,29 @@ func (d *KafkaDispatcher) Run(ctx context.Context) <-chan error {
 	return errCh
 }
 
-func (d *KafkaDispatcher) HandleMessage(ctx context.Context, msg []byte) error {
+func (d *MessagesDispatcher) tick(
+	ctx context.Context,
+	handleMessage func(context.Context, []byte) error,
+) error {
+	msg, err := d.messageConsumer.PeekNext(d.cfg.PollTimeoutMs)
+	if err != nil {
+		return err
+	}
+
+	err = handleMessage(ctx, msg)
+	if err != nil {
+		return err
+	}
+
+	err = d.messageConsumer.Commit(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *MessagesDispatcher) HandleMessage(ctx context.Context, msg []byte) error {
 	newInvoice, err := utils.DecodeJSON[protocol.NewInvoice](bytes.NewBuffer(msg))
 	if err != nil {
 		return fmt.Errorf("failed to decode new invoice: %w", err)
@@ -84,7 +115,7 @@ func (d *KafkaDispatcher) HandleMessage(ctx context.Context, msg []byte) error {
 		return nil
 	}
 	d.logger.InfoCtx(ctx, "validating invoice", zap.String("id", invoice.ID.String()))
-	if d.validate(invoice) {
+	if d.invoiceValidator.Validate(invoice) {
 		err := d.invoiceStorage.SetApproved(ctx, newInvoice.ID)
 		if err != nil {
 			return fmt.Errorf("failed to set approved invoice: %w", err)
@@ -98,10 +129,4 @@ func (d *KafkaDispatcher) HandleMessage(ctx context.Context, msg []byte) error {
 		d.logger.InfoCtx(ctx, "invoice rejected", zap.String("id", invoice.ID.String()))
 	}
 	return nil
-}
-
-func (d *KafkaDispatcher) validate(_ *dto.Invoice) bool {
-	time.Sleep(time.Duration(rand.Int()%5_000) * time.Millisecond) // some validation logic
-	const approveProbability float64 = 0.9
-	return rand.Float64() < approveProbability
 }

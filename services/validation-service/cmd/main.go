@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"go-invoice-service/common/pkg/logging"
 	"go-invoice-service/common/pkg/meterutils"
+	kafkaProtocol "go-invoice-service/common/protocol/kafka"
 	storagepb "go-invoice-service/common/protocol/proto/validation"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -18,7 +19,7 @@ import (
 	"os/signal"
 	"syscall"
 	"validation-service/cmd/config"
-	"validation-service/internal/controllers"
+	"validation-service/internal/kafka"
 	"validation-service/internal/metrics"
 	"validation-service/internal/services"
 )
@@ -58,9 +59,15 @@ func main() {
 	)
 	defer cancelCtx()
 
-	kafkaConsumer, err := services.NewKafkaConsumer(cfg.KafkaConsumerConfig, metricsCollector, logger)
+	kafkaConsumer, err := kafka.NewKafkaConsumer(
+		cfg.KafkaConsumerConfig,
+		metricsCollector,
+		"validation-service",
+		string(kafkaProtocol.TopicNewInvoice),
+		logger,
+	)
 	if err != nil {
-		logger.ErrorCtx(rootCtx, "Failed to create kafka producer", zap.Error(err))
+		logger.FatalCtx(rootCtx, "Failed to create consumer", zap.Error(err))
 	}
 	defer kafkaConsumer.Close()
 
@@ -70,17 +77,20 @@ func main() {
 		logger.FatalCtx(rootCtx, "Failed to connect to storage service", zap.Error(err))
 	}
 	defer storageServiceConnection.Close()
+
 	invoiceStorageClient := storagepb.NewInvoiceStorageClient(storageServiceConnection)
 	storageService := services.NewInvoiceStorage(invoiceStorageClient, metricsCollector, logger)
+	validationService := services.NewValidator()
 
-	kafkaDispatcher := controllers.NewKafkaDispatcher(
+	messagesDispatcher := services.NewMessagesDispatcher(
 		cfg.KafkaDispatcherConfig,
-		kafkaConsumer,
 		storageService,
+		kafkaConsumer,
+		validationService,
 		logger,
 	)
 
-	if err := run(rootCtx, cfg, kafkaDispatcher, logger); err != nil {
+	if err := run(rootCtx, cfg, messagesDispatcher, logger); err != nil {
 		logger.ErrorCtx(rootCtx, "Service shutdown with error", zap.Error(err))
 	} else {
 		logger.InfoCtx(rootCtx, "Service shutdown gracefully")
@@ -90,14 +100,14 @@ func main() {
 func run(
 	rootCtx context.Context,
 	cfg *config.Config,
-	outboxDispatcher *controllers.KafkaDispatcher,
+	messagesDispatcher *services.MessagesDispatcher,
 	logger *logging.ZapLogger,
 ) error {
 	g, ctx := errgroup.WithContext(rootCtx)
 
 	g.Go(func() error {
 		defer logger.InfoCtx(ctx, "Kafka Dispatching Finished")
-		errCh := outboxDispatcher.Run(ctx)
+		errCh := messagesDispatcher.Run(ctx)
 		for err := range errCh {
 			logger.ErrorCtx(ctx, "Kafka Dispatching Error", zap.Error(err))
 		}

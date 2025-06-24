@@ -9,7 +9,7 @@ import (
 	"os"
 	"strconv"
 	"time"
-	"validation-service/internal/controllers"
+	"validation-service/internal/kafka"
 	"validation-service/internal/services"
 )
 
@@ -43,8 +43,8 @@ var defaultRetryAttempts = []time.Duration{
 }
 
 type Config struct {
-	KafkaConsumerConfig   services.KafkaConsumerConfig
-	KafkaDispatcherConfig controllers.KafkaDispatcherConfig
+	KafkaConsumerConfig   kafka.ConsumerConfig
+	KafkaDispatcherConfig services.MessagesDispatcherConfig
 	PrometheusConfig      meterutils.PrometheusConfig
 	OpenTelemetryConfig   meterutils.OpenTelemetryConfig
 	StorageAddress        string
@@ -140,11 +140,11 @@ func Load() (*Config, error) {
 	}
 
 	return &Config{
-		KafkaConsumerConfig: services.KafkaConsumerConfig{
+		KafkaConsumerConfig: kafka.ConsumerConfig{
 			ServerAddress: kafkaAddress,
 			RetryAttempts: defaultRetryAttempts,
 		},
-		KafkaDispatcherConfig: controllers.KafkaDispatcherConfig{
+		KafkaDispatcherConfig: services.MessagesDispatcherConfig{
 			PollTimeoutMs: kafkaPollTimeoutMs,
 		},
 		PrometheusConfig: meterutils.PrometheusConfig{

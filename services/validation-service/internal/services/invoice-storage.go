@@ -18,7 +18,7 @@ type InvoicesMetrics interface {
 	IncTotalHandledInvoices(ctx context.Context, status string)
 }
 
-type InvoiceStorage struct {
+type InvoiceStorageService struct {
 	invoiceStorageClient InvoiceStorageClient
 	metrics              InvoicesMetrics
 	logger               *logging.ZapLogger
@@ -28,15 +28,15 @@ func NewInvoiceStorage(
 	invoiceStorageClient InvoiceStorageClient,
 	metrics InvoicesMetrics,
 	logger *logging.ZapLogger,
-) *InvoiceStorage {
-	return &InvoiceStorage{
+) *InvoiceStorageService {
+	return &InvoiceStorageService{
 		invoiceStorageClient: invoiceStorageClient,
 		metrics:              metrics,
 		logger:               logger,
 	}
 }
 
-func (s *InvoiceStorage) GetInvoice(ctx context.Context, id uuid.UUID) (*dto.Invoice, dto.InvoiceStatus, error) {
+func (s *InvoiceStorageService) GetInvoice(ctx context.Context, id uuid.UUID) (*dto.Invoice, dto.InvoiceStatus, error) {
 	req := &pb.GetInvoiceRequest{
 		Id: uuidToProto(id),
 	}
@@ -55,7 +55,7 @@ func (s *InvoiceStorage) GetInvoice(ctx context.Context, id uuid.UUID) (*dto.Inv
 	return invoice, invoiceStatus, nil
 }
 
-func (s *InvoiceStorage) SetApproved(ctx context.Context, id uuid.UUID) error {
+func (s *InvoiceStorageService) SetApproved(ctx context.Context, id uuid.UUID) error {
 	req := &pb.SetApprovedRequest{
 		Id: uuidToProto(id),
 	}
@@ -67,7 +67,7 @@ func (s *InvoiceStorage) SetApproved(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (s *InvoiceStorage) SetRejected(ctx context.Context, id uuid.UUID) error {
+func (s *InvoiceStorageService) SetRejected(ctx context.Context, id uuid.UUID) error {
 	req := &pb.SetRejectedRequest{
 		Id: uuidToProto(id),
 	}
