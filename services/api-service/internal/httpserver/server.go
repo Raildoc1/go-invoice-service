@@ -73,13 +73,13 @@ func (s *Server) createMux() *chi.Mux {
 	router.Use(panicRecover.CreateHandler)
 	router.Use(statsMiddleware.CreateHandler)
 	router.Use(loggerContextMiddleware.CreateHandler)
-	router.Route("/api/user/", func(router chi.Router) {
+	router.Route("/api/", func(router chi.Router) {
 		router.With(
 			requestDecompression.CreateHandler,
 			responseCompression.CreateHandler,
 		).Route("/invoice/", func(router chi.Router) {
 			router.Post("/create", invoiceCreateHandler.ServeHTTP)
-			router.Get("/get", invoiceGetHandler.ServeHTTP)
+			router.Post("/get", invoiceGetHandler.ServeHTTP)
 		})
 	})
 
