@@ -6,13 +6,13 @@ Example of a modern Go microservice for managing invoices, built with persistenc
 
 ## ✨ Features
 
-- 📄 RESTful API for creating and retrieving invoices
-- 🛢️ PostgreSQL for persistent storage
-- 🔁 Kafka integration using an Outbox pattern
-- 📊 Prometheus metrics for performance and business KPIs
-- 🧠 gRPC endpoint for inter-service communication
+- 📄 [RESTful API for creating and retrieving invoices](./services/api-service/internal/httpserver/server.go)
+- 🛢️ [PostgreSQL for persistent storage](./services/storage-service/internal/data/postgres)
+- 🔁 [Kafka integration using an Outbox pattern](./services/message-scheduler-service)
+- 📊 [Prometheus metrics for performance and business KPIs](./common/pkg/meterutils/prometheus-server.go)
+- 🧠 [gRPC endpoint for inter-service communication](./proto)
 - 🧪 [Auto-generated mocks with `mockgen`](./services/validation-service/internal/services)
-- 🐳 Docker Compose for easy local development
+- 🐳 [Docker Compose for easy local development](./docker-compose.yaml)
 
 ---
 
