@@ -9,7 +9,6 @@ import (
 	"go-invoice-service/api-service/internal/httpserver/middleware"
 	commonMiddleware "go-invoice-service/common/pkg/http/middleware"
 	"go-invoice-service/common/pkg/logging"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"net/http"
 )
 
@@ -66,23 +65,16 @@ func (s *Server) createMux() *chi.Mux {
 
 	//handlers
 	invoiceHandler := handlers.NewInvoice(s.storageService, s.logger)
-	authHandler := handlers.NewAuth()
 
-	authRegisterHandler := otelhttp.NewHandler(http.HandlerFunc(authHandler.Register), "register")
-	authLoginHandler := otelhttp.NewHandler(http.HandlerFunc(authHandler.Login), "login")
-	invoiceCreateHandler := otelhttp.NewHandler(http.HandlerFunc(invoiceHandler.Upload), "create-invoice")
-	invoiceGetHandler := otelhttp.NewHandler(http.HandlerFunc(invoiceHandler.Get), "get-invoice")
+	invoiceCreateHandler := http.HandlerFunc(invoiceHandler.Upload)
+	invoiceGetHandler := http.HandlerFunc(invoiceHandler.Get)
 
 	// router
 	router.Use(panicRecover.CreateHandler)
 	router.Use(statsMiddleware.CreateHandler)
 	router.Use(loggerContextMiddleware.CreateHandler)
 	router.Route("/api/user/", func(router chi.Router) {
-		router.Post("/register", authRegisterHandler.ServeHTTP)
-		router.Post("/login", authLoginHandler.ServeHTTP)
 		router.With(
-			// jwtauth.Verifier(s.jwtTokenAuth),
-			// jwtauth.Authenticator(s.jwtTokenAuth),
 			requestDecompression.CreateHandler,
 			responseCompression.CreateHandler,
 		).Route("/invoice/", func(router chi.Router) {
