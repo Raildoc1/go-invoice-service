@@ -39,7 +39,11 @@ This service uses a modular microservice pattern connected via HTTP/gRPC and Kaf
                   └────────┬───────────┘
                            │
                   ┌────────▼───────────┐
-    Postgres  <-  │  Storage Service   │  -> new_invoice Kafka message
+    Postgres  <-  │  Storage Service   │  -> new_invoice Kafka message (saved to outbox)
+                  └────────────────────┘
+
+                  ┌────────────────────┐
+      Outbox  ->  │ Message Scheduler  │  -> Kafka
                   └────────────────────┘
 
                   ┌────────────────────┐
@@ -47,7 +51,7 @@ This service uses a modular microservice pattern connected via HTTP/gRPC and Kaf
                   └────────┬───────────┘
                            │
                   ┌────────▼───────────┐
-    Postgres  <-  │ Storage Service    │  -> invoice_approved/invoice_rejected Kafka message
+    Postgres  <-  │ Storage Service    │  -> invoice_approved/invoice_rejected Kafka message (saved to outbox)
                   └────────────────────┘     that can be later consumed e.g. by notifications service
 ```
 
