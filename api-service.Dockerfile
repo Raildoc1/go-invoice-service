@@ -35,13 +35,4 @@ WORKDIR /
 
 COPY --from=build-stage /go-invoice-service/services/api-service/server ./server
 
-ENV PORT_TO_LISTEN=8080
-ENV HTTP_ADDRESS=":${PORT_TO_LISTEN}"
-ENV STORAGE_ADDRESS="localhost:5000"
-ENV JWT_PRIVATE_KEY="secret"
-ENV PROMETHEUS_PORT=9090
-ENV OTEL_COLLECTOR_ADDRESS="localhost:4318"
-
 ENTRYPOINT ["./server"]
-
-EXPOSE ${PORT_TO_LISTEN}

@@ -40,8 +40,4 @@ WORKDIR /
 
 COPY --from=build-stage /go-invoice-service/services/validation-service/server ./server
 
-ENV KAFKA_ADDRESS="localhost:9092"
-ENV STORAGE_ADDRESS="localhost:9090"
-ENV KAFKA_POLL_TIMEOUT_MS=100
-
 ENTRYPOINT ["./server"]

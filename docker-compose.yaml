@@ -124,6 +124,9 @@ services:
       KAFKA_ADDRESS: kafka-broker-1:19092,kafka-broker-2:19092,kafka-broker-3:19092
       STORAGE_ADDRESS: storage-service:5000
       WORKERS_COUNT: 3
+      RETRY_INTERVAL_MS: 30000
+      DISPATCH_INTERVAL_MS: 1000
+      PROMETHEUS_PORT: 9090
       OTEL_COLLECTOR_ADDRESS: otel-collector:4318
     depends_on:
       - storage-service
@@ -153,7 +156,7 @@ services:
       context: ./
       dockerfile: api-service.Dockerfile
     environment:
-      PORT_TO_LISTEN: 8080
+      HTTP_ADDRESS: :8080
       STORAGE_ADDRESS: storage-service:5000
       PROMETHEUS_PORT: 9090
       OTEL_COLLECTOR_ADDRESS: otel-collector:4318
