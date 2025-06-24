@@ -7,59 +7,50 @@ import (
 	"go-invoice-service/common/pkg/logging"
 	"go-invoice-service/common/protocol/proto/types"
 	pb "go-invoice-service/common/protocol/proto/validation"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"validation-service/internal/dto"
-	"validation-service/internal/metrics"
 )
 
-type StorageConfig struct {
-	ServerAddress string
+type InvoiceStorageClient interface {
+	pb.InvoiceStorageClient
+}
+
+type InvoicesMetrics interface {
+	IncTotalHandledInvoices(ctx context.Context, status string)
 }
 
 type InvoiceStorage struct {
-	conn                 *grpc.ClientConn
-	invoiceStorageClient pb.InvoiceStorageClient
+	invoiceStorageClient InvoiceStorageClient
+	metrics              InvoicesMetrics
 	logger               *logging.ZapLogger
 }
 
-func NewInvoiceStorage(cfg StorageConfig, logger *logging.ZapLogger) (*InvoiceStorage, error) {
-	options := grpc.WithTransportCredentials(insecure.NewCredentials())
-	conn, err := grpc.NewClient(cfg.ServerAddress, options)
-	if err != nil {
-		return nil, err
-	}
-	storageClient := pb.NewInvoiceStorageClient(conn)
+func NewInvoiceStorage(
+	invoiceStorageClient InvoiceStorageClient,
+	metrics InvoicesMetrics,
+	logger *logging.ZapLogger,
+) *InvoiceStorage {
 	return &InvoiceStorage{
-		conn:                 conn,
-		invoiceStorageClient: storageClient,
+		invoiceStorageClient: invoiceStorageClient,
+		metrics:              metrics,
 		logger:               logger,
-	}, nil
-}
-
-func (s *InvoiceStorage) Close() error {
-	err := s.conn.Close()
-	if err != nil {
-		return fmt.Errorf("failed to close gRPC connection: %w", err)
 	}
-	return nil
 }
 
-func (s *InvoiceStorage) GetInvoice(ctx context.Context, id uuid.UUID) (dto.Invoice, dto.InvoiceStatus, error) {
+func (s *InvoiceStorage) GetInvoice(ctx context.Context, id uuid.UUID) (*dto.Invoice, dto.InvoiceStatus, error) {
 	req := &pb.GetInvoiceRequest{
 		Id: uuidToProto(id),
 	}
 	resp, err := s.invoiceStorageClient.Get(ctx, req)
 	if err != nil {
-		return dto.Invoice{}, dto.NilInvoiceStatus, fmt.Errorf("failed to get invoice: %w", err)
+		return nil, dto.NilInvoiceStatus, fmt.Errorf("failed to get invoice: %w", err)
 	}
 	invoice, err := invoiceFromProto(resp.GetInvoice())
 	if err != nil {
-		return dto.Invoice{}, dto.NilInvoiceStatus, fmt.Errorf("failed to retrieve invoice: %w", err)
+		return nil, dto.NilInvoiceStatus, fmt.Errorf("failed to retrieve invoice: %w", err)
 	}
 	invoiceStatus, err := invoiceStatusFromProto(resp.GetStatus())
 	if err != nil {
-		return dto.Invoice{}, dto.NilInvoiceStatus, fmt.Errorf("failed to retrieve invoice status: %w", err)
+		return nil, dto.NilInvoiceStatus, fmt.Errorf("failed to retrieve invoice status: %w", err)
 	}
 	return invoice, invoiceStatus, nil
 }
@@ -72,7 +63,7 @@ func (s *InvoiceStorage) SetApproved(ctx context.Context, id uuid.UUID) error {
 	if err != nil {
 		return fmt.Errorf("failed to set approved: %w", err)
 	}
-	metrics.IncTotalHandledInvoices(ctx, "approved")
+	s.metrics.IncTotalHandledInvoices(ctx, "approved")
 	return nil
 }
 
@@ -84,7 +75,7 @@ func (s *InvoiceStorage) SetRejected(ctx context.Context, id uuid.UUID) error {
 	if err != nil {
 		return fmt.Errorf("failed to set rejected: %w", err)
 	}
-	metrics.IncTotalHandledInvoices(ctx, "rejected")
+	s.metrics.IncTotalHandledInvoices(ctx, "rejected")
 	return nil
 }
 
@@ -100,16 +91,16 @@ func invoiceStatusFromProto(status types.InvoiceStatus) (dto.InvoiceStatus, erro
 	return dto.NilInvoiceStatus, fmt.Errorf("invalid invoice status %s", status.String())
 }
 
-func invoiceFromProto(invoice *types.Invoice) (dto.Invoice, error) {
+func invoiceFromProto(invoice *types.Invoice) (*dto.Invoice, error) {
 	id, err := uuidFromProto(invoice.Id)
 	if err != nil {
-		return dto.Invoice{}, err
+		return nil, err
 	}
 	customerId, err := uuidFromProto(invoice.CustomerId)
 	if err != nil {
-		return dto.Invoice{}, err
+		return nil, err
 	}
-	return dto.Invoice{
+	return &dto.Invoice{
 		ID:         id,
 		CustomerID: customerId,
 		Amount:     *invoice.Amount,

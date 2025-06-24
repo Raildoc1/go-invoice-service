@@ -10,7 +10,6 @@ import (
 	protocol "go-invoice-service/common/protocol/kafka"
 	"go.uber.org/zap"
 	"time"
-	"validation-service/internal/metrics"
 )
 
 var (
@@ -21,6 +20,10 @@ const (
 	consumerGroupID = "validation-service"
 )
 
+type KafkaConsumerMetrics interface {
+	IncKafkaTotalConsumedMessages(ctx context.Context, topic, consumerGroupID string)
+}
+
 type KafkaConsumerConfig struct {
 	ServerAddress string
 	RetryAttempts []time.Duration
@@ -28,11 +31,16 @@ type KafkaConsumerConfig struct {
 
 type KafkaConsumer struct {
 	cfg      KafkaConsumerConfig
+	metrics  KafkaConsumerMetrics
 	consumer *kafka.Consumer
 	logger   *logging.ZapLogger
 }
 
-func NewKafkaConsumer(cfg KafkaConsumerConfig, logger *logging.ZapLogger) (*KafkaConsumer, error) {
+func NewKafkaConsumer(
+	cfg KafkaConsumerConfig,
+	metrics KafkaConsumerMetrics,
+	logger *logging.ZapLogger,
+) (*KafkaConsumer, error) {
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers":  cfg.ServerAddress,
 		"group.id":           consumerGroupID,
@@ -48,6 +56,7 @@ func NewKafkaConsumer(cfg KafkaConsumerConfig, logger *logging.ZapLogger) (*Kafk
 	}
 	return &KafkaConsumer{
 		cfg:      cfg,
+		metrics:  metrics,
 		consumer: c,
 		logger:   logger,
 	}, nil
@@ -92,7 +101,7 @@ func (r *KafkaConsumer) HandleNext(
 		if err != nil {
 			return fmt.Errorf("failed to commit message %w", err)
 		} else {
-			metrics.IncKafkaTotalConsumedMessages(ctx, string(protocol.TopicNewInvoice), consumerGroupID)
+			r.metrics.IncKafkaTotalConsumedMessages(ctx, string(protocol.TopicNewInvoice), consumerGroupID)
 		}
 		return nil
 

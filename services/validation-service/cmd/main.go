@@ -7,9 +7,12 @@ import (
 	"fmt"
 	"go-invoice-service/common/pkg/logging"
 	"go-invoice-service/common/pkg/meterutils"
+	storagepb "go-invoice-service/common/protocol/proto/validation"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"net/http"
 	"os/signal"
@@ -32,7 +35,7 @@ func main() {
 	}
 	defer mp.Shutdown(context.Background())
 
-	metrics.MustInitCustomMetric()
+	metricsCollector := metrics.MustInitCustomMetric()
 
 	cfgJSON, err := json.MarshalIndent(cfg, "", "   ")
 	if err != nil {
@@ -55,17 +58,20 @@ func main() {
 	)
 	defer cancelCtx()
 
-	kafkaConsumer, err := services.NewKafkaConsumer(cfg.KafkaConsumerConfig, logger)
+	kafkaConsumer, err := services.NewKafkaConsumer(cfg.KafkaConsumerConfig, metricsCollector, logger)
 	if err != nil {
 		logger.ErrorCtx(rootCtx, "Failed to create kafka producer", zap.Error(err))
 	}
 	defer kafkaConsumer.Close()
 
-	storageService, err := services.NewInvoiceStorage(cfg.StorageConfig, logger)
+	options := grpc.WithTransportCredentials(insecure.NewCredentials())
+	storageServiceConnection, err := grpc.NewClient(cfg.StorageAddress, options)
 	if err != nil {
-		logger.ErrorCtx(rootCtx, "Failed to create storage service", zap.Error(err))
+		logger.FatalCtx(rootCtx, "Failed to connect to storage service", zap.Error(err))
 	}
-	defer storageService.Close()
+	defer storageServiceConnection.Close()
+	invoiceStorageClient := storagepb.NewInvoiceStorageClient(storageServiceConnection)
+	storageService := services.NewInvoiceStorage(invoiceStorageClient, metricsCollector, logger)
 
 	kafkaDispatcher := controllers.NewKafkaDispatcher(
 		cfg.KafkaDispatcherConfig,

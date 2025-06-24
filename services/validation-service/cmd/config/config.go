@@ -44,10 +44,10 @@ var defaultRetryAttempts = []time.Duration{
 
 type Config struct {
 	KafkaConsumerConfig   services.KafkaConsumerConfig
-	StorageConfig         services.StorageConfig
 	KafkaDispatcherConfig controllers.KafkaDispatcherConfig
 	PrometheusConfig      meterutils.PrometheusConfig
 	OpenTelemetryConfig   meterutils.OpenTelemetryConfig
+	StorageAddress        string
 }
 
 func Load() (*Config, error) {
@@ -144,9 +144,6 @@ func Load() (*Config, error) {
 			ServerAddress: kafkaAddress,
 			RetryAttempts: defaultRetryAttempts,
 		},
-		StorageConfig: services.StorageConfig{
-			ServerAddress: storageAddress,
-		},
 		KafkaDispatcherConfig: controllers.KafkaDispatcherConfig{
 			PollTimeoutMs: kafkaPollTimeoutMs,
 		},
@@ -158,5 +155,6 @@ func Load() (*Config, error) {
 			ServiceName:      "validation-service",
 			CollectorAddress: otelCollectorAddress,
 		},
+		StorageAddress: storageAddress,
 	}, nil
 }

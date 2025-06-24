@@ -19,7 +19,7 @@ type KafkaConsumer interface {
 }
 
 type InvoiceStorage interface {
-	GetInvoice(ctx context.Context, id uuid.UUID) (dto.Invoice, dto.InvoiceStatus, error)
+	GetInvoice(ctx context.Context, id uuid.UUID) (*dto.Invoice, dto.InvoiceStatus, error)
 	SetApproved(ctx context.Context, id uuid.UUID) error
 	SetRejected(ctx context.Context, id uuid.UUID) error
 }
@@ -100,7 +100,7 @@ func (d *KafkaDispatcher) HandleMessage(ctx context.Context, msg []byte) error {
 	return nil
 }
 
-func (d *KafkaDispatcher) validate(_ dto.Invoice) bool {
+func (d *KafkaDispatcher) validate(_ *dto.Invoice) bool {
 	time.Sleep(time.Duration(rand.Int()%5_000) * time.Millisecond) // some validation logic
 	const approveProbability float64 = 0.9
 	return rand.Float64() < approveProbability
