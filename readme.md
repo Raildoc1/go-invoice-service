@@ -22,7 +22,7 @@ message streaming.
 | Layer        | Tech                       |
 |--------------|----------------------------|
 | Language     | Go (1.24)                  |
-| Transport    | REST, gRPC                 |
+| Transport    | `chi` (REST), gRPC         |
 | DB           | `sqlc` (PostgreSQL)        |
 | Testing      | `mockgen`, `testify`       |
 | Queue        | Kafka                      |
@@ -40,7 +40,7 @@ This service uses a modular microservice pattern connected via HTTP/gRPC and Kaf
                   └────────┬───────────┘
                            │
                   ┌────────▼───────────┐
-                  │  Storage Service   │  -> new_invoice Kafka message
+    Postgres  <-  │  Storage Service   │  -> new_invoice Kafka message
                   └────────────────────┘
 
                   ┌────────────────────┐
@@ -48,7 +48,7 @@ This service uses a modular microservice pattern connected via HTTP/gRPC and Kaf
                   └────────┬───────────┘
                            │
                   ┌────────▼───────────┐
-                  │ Storage Service    │  -> invoice_approved/invoice_rejected Kafka message
+    Postgres  <-  │ Storage Service    │  -> invoice_approved/invoice_rejected Kafka message
                   └────────────────────┘     that can be later consumed e.g. by notifications service
 ```
 
