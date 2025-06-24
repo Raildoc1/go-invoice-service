@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Generate Mocks" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile">
+    <makefile filename="$PROJECT_DIR$/services/validation-service/Makefile" target="gen_mocks" workingDirectory="" arguments="">
+      <envs />
+    </makefile>
+    <method v="2" />
+  </configuration>
+</component>

@@ -24,7 +24,7 @@ type Invoice struct {
 }
 
 type InvoiceItem struct {
-	ID          uuid.UUID
+	ID          int64
 	InvoiceID   uuid.UUID
 	Description string
 	Quantity    int32
