@@ -61,7 +61,7 @@ This service uses a modular microservice pattern connected via HTTP/gRPC and Kaf
 docker-compose up --build
 ```
 
-## 🧪 API Service Endpoints
+## 📡 API Service Endpoints
 
 | Method | Path                  | Description          | Request Body     |
 |--------|-----------------------|----------------------|------------------|
