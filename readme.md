@@ -35,7 +35,6 @@ This service uses a modular microservice pattern connected via HTTP/gRPC and Kaf
 ```text
                   ┌────────────────────┐
                   │   API Service      │
-                  │  (REST/gRPC)       │
                   └────────┬───────────┘
                            │
                   ┌────────▼───────────┐
